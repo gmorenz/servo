@@ -39,7 +39,7 @@ pub trait DerivedFrom<T: Castable>: Castable {}
 
 // http://heycam.github.io/webidl/#es-USVString
 impl ToJSValConvertible for USVString {
-    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         self.0.to_jsval(cx, rval);
     }
 }
@@ -55,7 +55,7 @@ pub enum StringificationBehavior {
 
 // https://heycam.github.io/webidl/#es-DOMString
 impl ToJSValConvertible for DOMString {
-    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         (**self).to_jsval(cx, rval);
     }
 }
@@ -141,7 +141,7 @@ impl FromJSValConvertible for USVString {
 
 // http://heycam.github.io/webidl/#es-ByteString
 impl ToJSValConvertible for ByteString {
-    unsafe fn to_jsval(&self, cx: *mut JSContext, mut rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         let jsstr = JS_NewStringCopyN(
             cx,
             self.as_ptr() as *const libc::c_char,
@@ -196,7 +196,7 @@ impl FromJSValConvertible for ByteString {
 }
 
 impl ToJSValConvertible for Reflector {
-    unsafe fn to_jsval(&self, cx: *mut JSContext, mut rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         let obj = self.get_jsobject().get();
         assert!(!obj.is_null());
         rval.set(ObjectValue(obj));
@@ -220,7 +220,7 @@ impl<T: DomObject + IDLInterface> FromJSValConvertible for DomRoot<T> {
 }
 
 impl<T: DomObject> ToJSValConvertible for DomRoot<T> {
-    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         self.reflector().to_jsval(cx, rval);
     }
 }

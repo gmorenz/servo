@@ -127,7 +127,7 @@ impl PromiseRejectionEventMethods<crate::DomTypeHolder> for PromiseRejectionEven
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-promiserejectionevent-reason
-    fn Reason(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Reason(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.reason.get())
     }
 

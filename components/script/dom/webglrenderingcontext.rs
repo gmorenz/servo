@@ -134,12 +134,12 @@ where
 pub(crate) unsafe fn uniform_typed<T>(
     cx: *mut JSContext,
     value: &[T::Element],
-    mut retval: MutableHandleValue,
+    retval: &mut MutableHandleValue,
 ) where
     T: TypedArrayElementCreator,
 {
     rooted!(in(cx) let mut rval = ptr::null_mut::<JSObject>());
-    <TypedArray<T, *mut JSObject>>::create(cx, CreateWith::Slice(value), rval.handle_mut())
+    <TypedArray<T, *mut JSObject>>::create(cx, CreateWith::Slice(value), &mut rval.handle_mut())
         .unwrap();
     retval.set(ObjectValue(rval.get()));
 }
@@ -1842,7 +1842,7 @@ impl WebGLRenderingContext {
         &self,
         buffer: Option<DomRoot<WebGLBuffer>>,
         parameter: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let buffer = handle_potential_webgl_error!(
             self,
@@ -2041,7 +2041,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         _cx: SafeJSContext,
         target: u32,
         parameter: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let buffer = handle_potential_webgl_error!(
             self,
@@ -2053,7 +2053,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
 
     #[allow(unsafe_code)]
     // https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.3
-    fn GetParameter(&self, cx: SafeJSContext, parameter: u32, mut retval: MutableHandleValue) {
+    fn GetParameter(&self, cx: SafeJSContext, parameter: u32, retval: &mut MutableHandleValue) {
         if !self
             .extension_manager
             .is_get_parameter_name_enabled(parameter)
@@ -2130,7 +2130,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                 let format_ids = self.extension_manager.get_tex_compression_ids();
 
                 rooted!(in(*cx) let mut rval = ptr::null_mut::<JSObject>());
-                Uint32Array::create(*cx, CreateWith::Slice(&format_ids), rval.handle_mut())
+                Uint32Array::create(*cx, CreateWith::Slice(&format_ids), &mut rval.handle_mut())
                     .unwrap();
                 return retval.set(ObjectValue(rval.get()));
             },
@@ -2238,7 +2238,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                 Int32Array::create(
                     *cx,
                     CreateWith::Slice(&receiver.recv().unwrap()),
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                 )
                 .unwrap();
                 retval.set(ObjectValue(rval.get()))
@@ -2250,7 +2250,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                 Int32Array::create(
                     *cx,
                     CreateWith::Slice(&receiver.recv().unwrap()),
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                 )
                 .unwrap();
                 retval.set(ObjectValue(rval.get()))
@@ -2267,7 +2267,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                 Float32Array::create(
                     *cx,
                     CreateWith::Slice(&receiver.recv().unwrap()),
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                 )
                 .unwrap();
                 retval.set(ObjectValue(rval.get()))
@@ -2279,7 +2279,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                 Float32Array::create(
                     *cx,
                     CreateWith::Slice(&receiver.recv().unwrap()),
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                 )
                 .unwrap();
                 retval.set(ObjectValue(rval.get()))
@@ -2293,7 +2293,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         _cx: SafeJSContext,
         target: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let texture_slot = handle_potential_webgl_error!(
             self,
@@ -3174,7 +3174,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         target: u32,
         attachment: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         // Check if currently bound framebuffer is non-zero as per spec.
         if let Some(fb) = self.bound_draw_framebuffer.get() {
@@ -3291,7 +3291,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         _cx: SafeJSContext,
         target: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         // We do not check to see if the renderbuffer came from an opaque framebuffer
         // https://github.com/immersive-web/webxr/issues/862
@@ -3352,7 +3352,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         _: SafeJSContext,
         program: &WebGLProgram,
         param: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self,
@@ -3403,7 +3403,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         _: SafeJSContext,
         shader: &WebGLShader,
         param: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self,
@@ -3490,7 +3490,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         cx: SafeJSContext,
         index: u32,
         param: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let mut get_attrib = |data: Ref<VertexAttribData>| {
             if param == constants::CURRENT_VERTEX_ATTRIB {
@@ -3503,7 +3503,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                             Float32Array::create(
                                 *cx,
                                 CreateWith::Slice(&value),
-                                result.handle_mut(),
+                                &mut result.handle_mut(),
                             )
                             .unwrap();
                             return retval.set(ObjectValue(result.get()));
@@ -3513,7 +3513,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                         let value = [x, y, z, w];
                         unsafe {
                             rooted!(in(*cx) let mut result = ptr::null_mut::<JSObject>());
-                            Int32Array::create(*cx, CreateWith::Slice(&value), result.handle_mut())
+                            Int32Array::create(*cx, CreateWith::Slice(&value), &mut result.handle_mut())
                                 .unwrap();
                             return retval.set(ObjectValue(result.get()));
                         }
@@ -3525,7 +3525,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
                             Uint32Array::create(
                                 *cx,
                                 CreateWith::Slice(&value),
-                                result.handle_mut(),
+                                &mut result.handle_mut(),
                             )
                             .unwrap();
                             return retval.set(ObjectValue(result.get()));
@@ -4157,7 +4157,7 @@ impl WebGLRenderingContextMethods<crate::DomTypeHolder> for WebGLRenderingContex
         cx: SafeJSContext,
         program: &WebGLProgram,
         location: &WebGLUniformLocation,
-        mut rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self,

@@ -19,7 +19,7 @@ use js::jsapi::{
     JS_GetOwnPropertyDescriptorById, JS_GetPropertyById, JS_IsExceptionPending, PropertyDescriptor,
 };
 use js::jsval::UndefinedValue;
-use js::rust::wrappers::{JS_CallFunctionName, JS_GetProperty, JS_HasOwnProperty, JS_TypeOfValue};
+use js::rust::jsapi_wrapped::{JS_CallFunctionName, JS_GetProperty, JS_HasOwnProperty, JS_TypeOfValue};
 use js::rust::{HandleObject, HandleValue, IdVector};
 use net_traits::CookieSource::{NonHTTP, HTTP};
 use net_traits::CoreResourceMsg::{DeleteCookies, GetCookiesDataForUrl, SetCookieForUrl};
@@ -143,7 +143,7 @@ unsafe fn object_has_to_json_property(
     let mut found = false;
     if JS_HasOwnProperty(cx, object, name.as_ptr(), &mut found) && found {
         rooted!(in(cx) let mut value = UndefinedValue());
-        let result = JS_GetProperty(cx, object, name.as_ptr(), value.handle_mut());
+        let result = JS_GetProperty(cx, object, name.as_ptr(), &mut value.handle_mut());
         if !result {
             throw_dom_exception(
                 SafeJSContext::from_ptr(cx),
@@ -238,7 +238,7 @@ pub(crate) unsafe fn jsval_to_webdriver(
 
             for i in 0..length {
                 rooted!(in(cx) let mut item = UndefinedValue());
-                match get_property_jsval(cx, object.handle(), &i.to_string(), item.handle_mut()) {
+                match get_property_jsval(cx, object.handle(), &i.to_string(), &mut item.handle_mut()) {
                     Ok(_) => match jsval_to_webdriver(cx, global_scope, item.handle()) {
                         Ok(converted_item) => result.push(converted_item),
                         err @ Err(_) => return err,
@@ -283,7 +283,7 @@ pub(crate) unsafe fn jsval_to_webdriver(
                 object.handle(),
                 name.as_ptr(),
                 &HandleValueArray::empty(),
-                value.handle_mut(),
+                &mut value.handle_mut(),
             ) {
                 jsval_to_webdriver(cx, global_scope, value.handle())
             } else {
@@ -366,7 +366,7 @@ pub(crate) fn handle_execute_script(
                 let global = window.as_global_scope();
                 global.evaluate_js_on_global_with_result(
                     &eval,
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                     ScriptFetchOptions::default_classic_script(global),
                     global.api_base_url(),
                     can_gc,
@@ -399,7 +399,7 @@ pub(crate) fn handle_execute_async_script(
             let global_scope = window.as_global_scope();
             global_scope.evaluate_js_on_global_with_result(
                 &eval,
-                rval.handle_mut(),
+                &mut rval.handle_mut(),
                 ScriptFetchOptions::default_classic_script(global_scope),
                 global_scope.api_base_url(),
                 can_gc,
@@ -1091,7 +1091,7 @@ pub(crate) fn handle_get_property(
                         *cx,
                         node.reflector().get_jsobject(),
                         &name,
-                        property.handle_mut(),
+                        &mut property.handle_mut(),
                     )
                 } {
                     Ok(_) => {

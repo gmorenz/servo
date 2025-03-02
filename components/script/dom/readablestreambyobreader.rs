@@ -168,7 +168,7 @@ impl ReadableStreamBYOBReader {
         Error::Type("Reader is released".to_owned()).to_jsval(
             cx,
             &self.global(),
-            error.handle_mut(),
+            &mut error.handle_mut(),
         );
 
         // Perform ! ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e).

@@ -367,11 +367,11 @@ impl NotificationMethods<crate::DomTypeHolder> for Notification {
         self.require_interaction
     }
     /// <https://notifications.spec.whatwg.org/#dom-notification-data>
-    fn Data(&self, _cx: SafeJSContext, mut retval: MutableHandleValue) {
+    fn Data(&self, _cx: SafeJSContext, retval: &mut MutableHandleValue) {
         retval.set(self.data.get());
     }
     /// <https://notifications.spec.whatwg.org/#dom-notification-actions>
-    fn Actions(&self, cx: SafeJSContext, retval: MutableHandleValue) {
+    fn Actions(&self, cx: SafeJSContext, retval: &mut MutableHandleValue) {
         // step 1: Let frozenActions be an empty list of type NotificationAction.
         let mut frozen_actions: Vec<NotificationAction> = Vec::new();
 
@@ -394,7 +394,7 @@ impl NotificationMethods<crate::DomTypeHolder> for Notification {
         to_frozen_array(frozen_actions.as_slice(), cx, retval);
     }
     /// <https://notifications.spec.whatwg.org/#dom-notification-vibrate>
-    fn Vibrate(&self, cx: SafeJSContext, retval: MutableHandleValue) {
+    fn Vibrate(&self, cx: SafeJSContext, retval: &mut MutableHandleValue) {
         to_frozen_array(self.vibration_pattern.as_slice(), cx, retval);
     }
     /// <https://notifications.spec.whatwg.org/#dom-notification-timestamp>

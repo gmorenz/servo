@@ -42,7 +42,7 @@ use js::jsapi::{
 };
 use js::jsval::UndefinedValue;
 use js::panic::wrap_panic;
-use js::rust::wrappers::{GetPromiseIsHandled, JS_GetPromiseResult};
+use js::rust::jsapi_wrapped::{GetPromiseIsHandled, JS_GetPromiseResult};
 pub(crate) use js::rust::ThreadSafeJSContext;
 use js::rust::{
     describe_scripted_caller, Handle, HandleObject as RustHandleObject, IntoHandle, JSEngine,
@@ -344,7 +344,7 @@ unsafe extern "C" fn promise_rejection_tracker(
                     let root_promise = trusted_promise.root();
 
                     rooted!(in(*cx) let mut reason = UndefinedValue());
-                    JS_GetPromiseResult(root_promise.reflector().get_jsobject(), reason.handle_mut());
+                    JS_GetPromiseResult(root_promise.reflector().get_jsobject(), &mut reason.handle_mut());
 
                     let event = PromiseRejectionEvent::new(
                         &target.global(),
@@ -462,7 +462,7 @@ pub(crate) fn notify_about_rejected_promises(global: &GlobalScope) {
 
                         // Step 4-2.
                         rooted!(in(*cx) let mut reason = UndefinedValue());
-                        JS_GetPromiseResult(promise.reflector().get_jsobject(), reason.handle_mut());
+                        JS_GetPromiseResult(promise.reflector().get_jsobject(), &mut reason.handle_mut());
 
                         let event = PromiseRejectionEvent::new(
                             &target.global(),

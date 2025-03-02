@@ -40,7 +40,7 @@ fn expand_dom_object(input: syn::DeriveInput) -> proc_macro2::TokenStream {
             #[allow(unsafe_code)]
             unsafe fn to_jsval(&self,
                                 cx: *mut js::jsapi::JSContext,
-                                rval: js::rust::MutableHandleValue) {
+                                rval: &mut js::rust::MutableHandleValue) {
                 let object = crate::DomObject::reflector(self).get_jsobject();
                 object.to_jsval(cx, rval)
             }

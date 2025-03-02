@@ -183,7 +183,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                     &key,
                     &data,
                     cx,
-                    array_buffer_ptr.handle_mut(),
+                    &mut array_buffer_ptr.handle_mut(),
                     CanGc::note(),
                 ) {
                     promise.reject_error(e, CanGc::note());
@@ -243,7 +243,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                     &key,
                     &data,
                     cx,
-                    array_buffer_ptr.handle_mut(),
+                    &mut array_buffer_ptr.handle_mut(),
                     CanGc::note(),
                 ) {
                     promise.reject_error(e, CanGc::note());
@@ -328,7 +328,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                 };
 
                 rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
-                create_buffer_source::<ArrayBufferU8>(cx, &result, array_buffer_ptr.handle_mut(), CanGc::note())
+                create_buffer_source::<ArrayBufferU8>(cx, &result, &mut array_buffer_ptr.handle_mut(), CanGc::note())
                     .expect("failed to create buffer source for exported key.");
 
                 // Step 9. Resolve promise with result.
@@ -480,7 +480,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
 
                 let cx = GlobalScope::get_cx();
                 rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
-                create_buffer_source::<ArrayBufferU8>(cx, digest.as_ref(), array_buffer_ptr.handle_mut(), CanGc::note())
+                create_buffer_source::<ArrayBufferU8>(cx, digest.as_ref(), &mut array_buffer_ptr.handle_mut(), CanGc::note())
                     .expect("failed to create buffer source for exported key.");
 
 
@@ -723,7 +723,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                     }
                 };
 
-                create_buffer_source::<ArrayBufferU8>(cx, &result, array_buffer_ptr.handle_mut(), CanGc::note())
+                create_buffer_source::<ArrayBufferU8>(cx, &result, &mut array_buffer_ptr.handle_mut(), CanGc::note())
                     .expect("failed to create buffer source for derived bits.");
 
                 // Step 10. Resolve promise with result.
@@ -838,7 +838,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                             AesExportedKey::Raw(k) => {
                                 let cx = GlobalScope::get_cx();
                                 rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
-                                create_buffer_source::<ArrayBufferU8>(cx, &k, array_buffer_ptr.handle_mut(),
+                                create_buffer_source::<ArrayBufferU8>(cx, &k, &mut array_buffer_ptr.handle_mut(),
                                     CanGc::note())
                                     .expect("failed to create buffer source for exported key.");
                                 promise.resolve_native(&array_buffer_ptr.get(), CanGc::note())
@@ -951,20 +951,20 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
 
                 let result = match normalized_algorithm {
                     KeyWrapAlgorithm::AesKw => {
-                        subtle.wrap_key_aes_kw(&wrapping_key, &bytes, cx, array_buffer_ptr.handle_mut(), CanGc::note())
+                        subtle.wrap_key_aes_kw(&wrapping_key, &bytes, cx, &mut array_buffer_ptr.handle_mut(), CanGc::note())
                     },
                     KeyWrapAlgorithm::AesCbc(params) => {
-                        subtle.encrypt_aes_cbc(&params, &wrapping_key, &bytes, cx, array_buffer_ptr.handle_mut(),
+                        subtle.encrypt_aes_cbc(&params, &wrapping_key, &bytes, cx, &mut array_buffer_ptr.handle_mut(),
                             CanGc::note())
                     },
                     KeyWrapAlgorithm::AesCtr(params) => {
                         subtle.encrypt_decrypt_aes_ctr(
-                            &params, &wrapping_key, &bytes, cx, array_buffer_ptr.handle_mut(), CanGc::note()
+                            &params, &wrapping_key, &bytes, cx, &mut array_buffer_ptr.handle_mut(), CanGc::note()
                         )
                     },
                     KeyWrapAlgorithm::AesGcm(params) => {
                         subtle.encrypt_aes_gcm(
-                            &params, &wrapping_key, &bytes, cx, array_buffer_ptr.handle_mut(), CanGc::note()
+                            &params, &wrapping_key, &bytes, cx, &mut array_buffer_ptr.handle_mut(), CanGc::note()
                         )
                     },
                 };
@@ -1035,24 +1035,24 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
 
                 let result = match normalized_algorithm {
                     KeyWrapAlgorithm::AesKw => {
-                        subtle.unwrap_key_aes_kw(&unwrapping_key, &wrapped_key_bytes, cx, array_buffer_ptr.handle_mut(),
+                        subtle.unwrap_key_aes_kw(&unwrapping_key, &wrapped_key_bytes, cx, &mut array_buffer_ptr.handle_mut(),
                             CanGc::note())
                     },
                     KeyWrapAlgorithm::AesCbc(params) => {
                         subtle.decrypt_aes_cbc(
-                            &params, &unwrapping_key, &wrapped_key_bytes, cx, array_buffer_ptr.handle_mut(),
+                            &params, &unwrapping_key, &wrapped_key_bytes, cx, &mut array_buffer_ptr.handle_mut(),
                             CanGc::note()
                         )
                     },
                     KeyWrapAlgorithm::AesCtr(params) => {
                         subtle.encrypt_decrypt_aes_ctr(
-                            &params, &unwrapping_key, &wrapped_key_bytes, cx, array_buffer_ptr.handle_mut(),
+                            &params, &unwrapping_key, &wrapped_key_bytes, cx, &mut array_buffer_ptr.handle_mut(),
                             CanGc::note()
                         )
                     },
                     KeyWrapAlgorithm::AesGcm(params) => {
                         subtle.decrypt_aes_gcm(
-                            &params, &unwrapping_key, &wrapped_key_bytes, cx, array_buffer_ptr.handle_mut(),
+                            &params, &unwrapping_key, &wrapped_key_bytes, cx, &mut array_buffer_ptr.handle_mut(),
                             CanGc::note()
                         )
                     },
@@ -1671,7 +1671,7 @@ impl SubtleCrypto {
         key: &CryptoKey,
         data: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         if params.iv.len() != 16 {
@@ -1710,7 +1710,7 @@ impl SubtleCrypto {
         key: &CryptoKey,
         data: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         if params.iv.len() != 16 {
@@ -1755,7 +1755,7 @@ impl SubtleCrypto {
         key: &CryptoKey,
         data: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         if params.counter.len() != 16 || params.length == 0 || params.length > 128 {
@@ -1794,7 +1794,7 @@ impl SubtleCrypto {
         key: &CryptoKey,
         plaintext: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         // Step 1. If plaintext has a length greater than 2^39 - 256 bytes, then throw an OperationError.
@@ -1915,7 +1915,7 @@ impl SubtleCrypto {
         key: &CryptoKey,
         ciphertext: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         // Step 1.
@@ -2095,7 +2095,7 @@ impl SubtleCrypto {
         AesKeyAlgorithm::from_name_and_size(
             name.clone(),
             key_gen_params.length,
-            algorithm_object.handle_mut(),
+            &mut algorithm_object.handle_mut(),
             cx,
         );
 
@@ -2174,7 +2174,7 @@ impl SubtleCrypto {
         HmacKeyAlgorithm::from_length_and_hash(
             length,
             params.hash,
-            algorithm_object.handle_mut(),
+            &mut algorithm_object.handle_mut(),
             cx,
         );
 
@@ -2235,7 +2235,7 @@ impl SubtleCrypto {
         AesKeyAlgorithm::from_name_and_size(
             name.clone(),
             (data.len() * 8) as u16,
-            algorithm_object.handle_mut(),
+            &mut algorithm_object.handle_mut(),
             cx,
         );
         let crypto_key = CryptoKey::new(
@@ -2342,7 +2342,7 @@ impl SubtleCrypto {
             let cx = GlobalScope::get_cx();
             rooted!(in(*cx) let mut algorithm_object = unsafe {JS_NewObject(*cx, ptr::null()) });
             assert!(!algorithm_object.is_null());
-            KeyAlgorithm::from_name(name.clone(), algorithm_object.handle_mut(), cx);
+            KeyAlgorithm::from_name(name.clone(), &mut algorithm_object.handle_mut(), cx);
 
             let key = CryptoKey::new(
                 &self.global(),
@@ -2441,7 +2441,7 @@ impl SubtleCrypto {
         let cx = GlobalScope::get_cx();
         rooted!(in(*cx) let mut algorithm_object = unsafe { JS_NewObject(*cx, ptr::null()) });
         assert!(!algorithm_object.is_null());
-        HmacKeyAlgorithm::from_length_and_hash(length, hash, algorithm_object.handle_mut(), cx);
+        HmacKeyAlgorithm::from_length_and_hash(length, hash, &mut algorithm_object.handle_mut(), cx);
 
         let key = CryptoKey::new(
             &self.global(),
@@ -2464,7 +2464,7 @@ impl SubtleCrypto {
         wrapping_key: &CryptoKey,
         bytes: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         // Step 1. If plaintext is not a multiple of 64 bits in length, then throw an OperationError.
@@ -2516,7 +2516,7 @@ impl SubtleCrypto {
         wrapping_key: &CryptoKey,
         bytes: &[u8],
         cx: JSContext,
-        handle: MutableHandleObject,
+        handle: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         // Step 1. Let plaintext be the result of performing the Key Unwrap operation described in Section 2.2.2
@@ -2596,7 +2596,7 @@ impl SubtleCrypto {
         let cx = GlobalScope::get_cx();
         rooted!(in(*cx) let mut algorithm_object = unsafe {JS_NewObject(*cx, ptr::null()) });
         assert!(!algorithm_object.is_null());
-        KeyAlgorithm::from_name(name.clone(), algorithm_object.handle_mut(), cx);
+        KeyAlgorithm::from_name(name.clone(), &mut algorithm_object.handle_mut(), cx);
 
         let key = CryptoKey::new(
             &self.global(),
@@ -2635,7 +2635,7 @@ impl KeyAlgorithm {
     /// Fill the object referenced by `out` with an [KeyAlgorithm]
     /// of the specified name and size.
     #[allow(unsafe_code)]
-    fn from_name(name: DOMString, out: MutableHandleObject, cx: JSContext) {
+    fn from_name(name: DOMString, out: &mut MutableHandleObject, cx: JSContext) {
         let key_algorithm = Self { name };
 
         unsafe {
@@ -2649,7 +2649,7 @@ impl HmacKeyAlgorithm {
     fn from_length_and_hash(
         length: u32,
         hash: DigestAlgorithm,
-        out: MutableHandleObject,
+        out: &mut MutableHandleObject,
         cx: JSContext,
     ) {
         let hmac_key_algorithm = Self {
@@ -2670,7 +2670,7 @@ impl AesKeyAlgorithm {
     /// Fill the object referenced by `out` with an [AesKeyAlgorithm]
     /// of the specified name and size.
     #[allow(unsafe_code)]
-    fn from_name_and_size(name: DOMString, size: u16, out: MutableHandleObject, cx: JSContext) {
+    fn from_name_and_size(name: DOMString, size: u16, out: &mut MutableHandleObject, cx: JSContext) {
         let key_algorithm = Self {
             parent: KeyAlgorithm { name },
             length: size,
@@ -2892,7 +2892,7 @@ impl EncryptionAlgorithm {
         key: &CryptoKey,
         data: &[u8],
         cx: JSContext,
-        result: MutableHandleObject,
+        result: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         match self {
@@ -2911,7 +2911,7 @@ impl EncryptionAlgorithm {
         key: &CryptoKey,
         data: &[u8],
         cx: JSContext,
-        result: MutableHandleObject,
+        result: &mut MutableHandleObject,
         can_gc: CanGc,
     ) -> Result<Vec<u8>, Error> {
         match self {

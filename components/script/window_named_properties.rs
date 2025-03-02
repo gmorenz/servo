@@ -89,9 +89,9 @@ unsafe extern "C" fn get_own_property_descriptor(
     if id.is_symbol() {
         if id.get().asBits_ == SymbolId(GetWellKnownSymbol(*cx, SymbolCode::toStringTag)).asBits_ {
             rooted!(in(*cx) let mut rval = UndefinedValue());
-            "WindowProperties".to_jsval(*cx, rval.handle_mut());
+            "WindowProperties".to_jsval(*cx, &mut rval.handle_mut());
             set_property_descriptor(
-                RustMutableHandle::from_raw(desc),
+                &mut RustMutableHandle::from_raw(desc),
                 rval.handle(),
                 JSPROP_READONLY.into(),
                 &mut *is_none,
@@ -134,9 +134,9 @@ unsafe extern "C" fn get_own_property_descriptor(
         .expect("global is not a window");
     if let Some(obj) = window.NamedGetter(s.into()) {
         rooted!(in(*cx) let mut rval = UndefinedValue());
-        obj.to_jsval(*cx, rval.handle_mut());
+        obj.to_jsval(*cx, &mut rval.handle_mut());
         set_property_descriptor(
-            RustMutableHandle::from_raw(desc),
+            &mut RustMutableHandle::from_raw(desc),
             rval.handle(),
             0,
             &mut *is_none,
@@ -237,7 +237,7 @@ static CLASS: JSClass = JSClass {
 pub(crate) fn create(
     cx: SafeJSContext,
     proto: RustHandleObject,
-    mut properties_obj: RustMutableHandleObject,
+    properties_obj: &mut RustMutableHandleObject,
 ) {
     unsafe {
         properties_obj.set(NewProxyObject(

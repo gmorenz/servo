@@ -24,7 +24,7 @@ use js::jsapi::{
     ObjectOpResult, PropertyDescriptor, JSPROP_ENUMERATE, JSPROP_READONLY,
 };
 use js::jsval::{NullValue, PrivateValue, UndefinedValue};
-use js::rust::wrappers::{JS_TransplantObject, NewWindowProxy, SetWindowProxy};
+use js::rust::jsapi_wrapped::{JS_TransplantObject, NewWindowProxy, SetWindowProxy};
 use js::rust::{get_object_class, Handle, MutableHandle, MutableHandleValue};
 use js::JSCLASS_IS_GLOBAL;
 use malloc_size_of::{MallocSizeOf, MallocSizeOfOps};
@@ -410,7 +410,7 @@ impl WindowProxy {
         &self,
         cx: *mut JSContext,
         in_realm_proof: InRealm,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         if self.disowned.get() {
             return retval.set(NullValue());
@@ -908,9 +908,9 @@ unsafe extern "C" fn getOwnPropertyDescriptor(
     let window = GetSubframeWindowProxy(cx, proxy, id);
     if let Some((window, attrs)) = window {
         rooted!(in(cx) let mut val = UndefinedValue());
-        window.to_jsval(cx, val.handle_mut());
+        window.to_jsval(cx, &mut val.handle_mut());
         set_property_descriptor(
-            MutableHandle::from_raw(desc),
+            &mut MutableHandle::from_raw(desc),
             val.handle(),
             attrs,
             &mut *is_none,
@@ -982,7 +982,7 @@ unsafe extern "C" fn get(
 ) -> bool {
     let window = GetSubframeWindowProxy(cx, proxy, id);
     if let Some((window, _attrs)) = window {
-        window.to_jsval(cx, MutableHandle::from_raw(vp));
+        window.to_jsval(cx, &mut MutableHandle::from_raw(vp));
         return true;
     }
 

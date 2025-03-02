@@ -211,7 +211,7 @@ impl NavigatorMethods<crate::DomTypeHolder> for Navigator {
 
     // https://html.spec.whatwg.org/multipage/#dom-navigator-languages
     #[allow(unsafe_code)]
-    fn Languages(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Languages(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         to_frozen_array(&[self.Language()], cx, retval)
     }
 

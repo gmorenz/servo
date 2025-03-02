@@ -10,7 +10,7 @@ use ipc_channel::ipc::{self, IpcReceiver, IpcSender};
 use ipc_channel::router::ROUTER;
 use js::jsapi::{Heap, JSObject, JS_ClearPendingException, Value as JSValue};
 use js::jsval::{JSVal, UndefinedValue};
-use js::rust::wrappers::{JS_GetPendingException, JS_ParseJSON};
+use js::rust::jsapi_wrapped::{JS_GetPendingException, JS_ParseJSON};
 use js::rust::HandleValue;
 use js::typedarray::{ArrayBufferU8, Uint8};
 use mime::{self, Mime};
@@ -848,10 +848,10 @@ fn run_json_data_algorithm(cx: JSContext, bytes: Vec<u8>) -> Fallible<FetchedDat
             *cx,
             json_text.as_ptr(),
             json_text.len() as u32,
-            rval.handle_mut(),
+            &mut rval.handle_mut(),
         ) {
             rooted!(in(*cx) let mut exception = UndefinedValue());
-            assert!(JS_GetPendingException(*cx, exception.handle_mut()));
+            assert!(JS_GetPendingException(*cx, &mut exception.handle_mut()));
             JS_ClearPendingException(*cx);
             return Ok(FetchedData::JSException(RootedTraceableBox::from_box(
                 Heap::boxed(exception.get()),
@@ -910,7 +910,7 @@ fn run_form_data_algorithm(
 fn run_bytes_data_algorithm(cx: JSContext, bytes: Vec<u8>, can_gc: CanGc) -> Fallible<FetchedData> {
     rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
 
-    create_buffer_source::<Uint8>(cx, &bytes, array_buffer_ptr.handle_mut(), can_gc)
+    create_buffer_source::<Uint8>(cx, &bytes, &mut array_buffer_ptr.handle_mut(), can_gc)
         .map_err(|_| Error::JSFailed)?;
 
     let rooted_heap = RootedTraceableBox::from_box(Heap::boxed(array_buffer_ptr.get()));
@@ -924,7 +924,7 @@ pub(crate) fn run_array_buffer_data_algorithm(
 ) -> Fallible<FetchedData> {
     rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
 
-    create_buffer_source::<ArrayBufferU8>(cx, &bytes, array_buffer_ptr.handle_mut(), can_gc)
+    create_buffer_source::<ArrayBufferU8>(cx, &bytes, &mut array_buffer_ptr.handle_mut(), can_gc)
         .map_err(|_| Error::JSFailed)?;
 
     let rooted_heap = RootedTraceableBox::from_box(Heap::boxed(array_buffer_ptr.get()));

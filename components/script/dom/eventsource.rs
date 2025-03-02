@@ -228,7 +228,7 @@ impl EventSourceContext {
             rooted!(in(*GlobalScope::get_cx()) let mut data = UndefinedValue());
             unsafe {
                 self.data
-                    .to_jsval(*GlobalScope::get_cx(), data.handle_mut())
+                    .to_jsval(*GlobalScope::get_cx(), &mut data.handle_mut())
             };
             MessageEvent::new(
                 &event_source.global(),

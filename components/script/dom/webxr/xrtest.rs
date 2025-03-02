@@ -183,7 +183,7 @@ impl XRTestMethods<crate::DomTypeHolder> for XRTest {
     fn SimulateUserActivation(&self, f: Rc<Function>) {
         ScriptThread::set_user_interacting(true);
         rooted!(in(*GlobalScope::get_cx()) let mut value: JSVal);
-        let _ = f.Call__(vec![], value.handle_mut(), ExceptionHandling::Rethrow);
+        let _ = f.Call__(vec![], &mut value.handle_mut(), ExceptionHandling::Rethrow);
         ScriptThread::set_user_interacting(false);
     }
 

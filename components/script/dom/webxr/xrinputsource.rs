@@ -89,7 +89,7 @@ impl XRInputSource {
         let cx = GlobalScope::get_cx();
         unsafe {
             rooted!(in(*cx) let mut profiles = UndefinedValue());
-            source.info.profiles.to_jsval(*cx, profiles.handle_mut());
+            source.info.profiles.to_jsval(*cx, &mut profiles.handle_mut());
             source.profiles.set(profiles.get());
         }
         source
@@ -161,7 +161,7 @@ impl XRInputSourceMethods<crate::DomTypeHolder> for XRInputSource {
         }
     }
     // https://immersive-web.github.io/webxr/#dom-xrinputsource-profiles
-    fn Profiles(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Profiles(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.profiles.get())
     }
 

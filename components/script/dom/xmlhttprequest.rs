@@ -20,7 +20,7 @@ use http::Method;
 use hyper_serde::Serde;
 use js::jsapi::{Heap, JS_ClearPendingException};
 use js::jsval::{JSVal, NullValue};
-use js::rust::wrappers::JS_ParseJSON;
+use js::rust::jsapi_wrapped::JS_ParseJSON;
 use js::rust::{HandleObject, MutableHandleValue};
 use js::typedarray::{ArrayBuffer, ArrayBufferU8};
 use mime::{self, Mime, Name};
@@ -909,7 +909,7 @@ impl XMLHttpRequestMethods<crate::DomTypeHolder> for XMLHttpRequest {
 
     #[allow(unsafe_code)]
     /// <https://xhr.spec.whatwg.org/#the-response-attribute>
-    fn Response(&self, cx: JSContext, can_gc: CanGc, mut rval: MutableHandleValue) {
+    fn Response(&self, cx: JSContext, can_gc: CanGc, rval: &mut MutableHandleValue) {
         match self.response_type.get() {
             XMLHttpRequestResponseType::_empty | XMLHttpRequestResponseType::Text => unsafe {
                 let ready_state = self.ready_state.get();
@@ -1420,7 +1420,7 @@ impl XMLHttpRequest {
 
     #[allow(unsafe_code)]
     /// <https://xhr.spec.whatwg.org/#json-response>
-    fn json_response(&self, cx: JSContext, mut rval: MutableHandleValue) {
+    fn json_response(&self, cx: JSContext, rval: &mut MutableHandleValue) {
         // Step 1
         let response_json = self.response_json.get();
         if !response_json.is_null_or_undefined() {

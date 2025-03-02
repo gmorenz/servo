@@ -27,7 +27,7 @@ impl CachedFrozenArray {
         &self,
         f: F,
         cx: JSContext,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         if let Some(inner) = &*self.frozen_value.borrow() {
             retval.set(inner.get());

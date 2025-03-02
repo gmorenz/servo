@@ -67,7 +67,7 @@ impl Callback for ReadLoopFulFillmentHandler {
                     .release(can_gc)
                     .expect("Releasing the reader should succeed");
                 rooted!(in(*cx) let mut v = UndefinedValue());
-                err.to_jsval(cx, &global, v.handle_mut());
+                err.to_jsval(cx, &global, &mut v.handle_mut());
                 (self.failure_steps)(cx, v.handle());
                 return;
             },
@@ -87,7 +87,7 @@ impl Callback for ReadLoopFulFillmentHandler {
                 Err(err) => {
                     //  If chunk is not a Uint8Array object, call failureSteps with a TypeError and abort these steps.
                     rooted!(in(*cx) let mut v = UndefinedValue());
-                    err.to_jsval(cx, &global, v.handle_mut());
+                    err.to_jsval(cx, &global, &mut v.handle_mut());
                     (self.failure_steps)(cx, v.handle());
                     self.reader
                         .release(can_gc)
@@ -386,7 +386,7 @@ impl ReadableStreamDefaultReader {
         Error::Type("Reader is released".to_owned()).to_jsval(
             cx,
             &self.global(),
-            error.handle_mut(),
+            &mut error.handle_mut(),
         );
 
         // Perform ! ReadableStreamDefaultReaderErrorReadRequests(reader, e).
@@ -532,7 +532,7 @@ impl ReadableStreamDefaultReaderMethods<crate::DomTypeHolder> for ReadableStream
             Error::Type("stream is undefined".to_owned()).to_jsval(
                 cx,
                 &self.global(),
-                error.handle_mut(),
+                &mut error.handle_mut(),
             );
             return Promise::new_rejected(&self.global(), cx, error.handle(), can_gc);
         }

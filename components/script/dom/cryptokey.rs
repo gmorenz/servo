@@ -140,7 +140,7 @@ impl CryptoKeyMethods<crate::DomTypeHolder> for CryptoKey {
     fn Usages(&self, cx: JSContext) -> NonNull<JSObject> {
         unsafe {
             rooted!(in(*cx) let mut usages: Value);
-            self.usages.to_jsval(*cx, usages.handle_mut());
+            self.usages.to_jsval(*cx, &mut usages.handle_mut());
             NonNull::new(usages.to_object()).unwrap()
         }
     }

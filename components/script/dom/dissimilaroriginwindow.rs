@@ -170,7 +170,7 @@ impl DissimilarOriginWindowMethods<crate::DomTypeHolder> for DissimilarOriginWin
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-opener
-    fn Opener(&self, _: JSContext, mut retval: MutableHandleValue) {
+    fn Opener(&self, _: JSContext, retval: &mut MutableHandleValue) {
         // TODO: Implement x-origin opener
         retval.set(UndefinedValue());
     }

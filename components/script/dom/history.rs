@@ -127,7 +127,7 @@ impl History {
                     blobs: None,
                 };
                 rooted!(in(*GlobalScope::get_cx()) let mut state = UndefinedValue());
-                if structuredclone::read(self.window.as_global_scope(), data, state.handle_mut())
+                if structuredclone::read(self.window.as_global_scope(), data, &mut state.handle_mut())
                     .is_err()
                 {
                     warn!("Error reading structuredclone data");
@@ -282,7 +282,7 @@ impl History {
         if structuredclone::read(
             self.window.as_global_scope(),
             serialized_data,
-            state.handle_mut(),
+            &mut state.handle_mut(),
         )
         .is_err()
         {
@@ -301,7 +301,7 @@ impl History {
 
 impl HistoryMethods<crate::DomTypeHolder> for History {
     /// <https://html.spec.whatwg.org/multipage/#dom-history-state>
-    fn GetState(&self, _cx: JSContext, mut retval: MutableHandleValue) -> Fallible<()> {
+    fn GetState(&self, _cx: JSContext, retval: &mut MutableHandleValue) -> Fallible<()> {
         if !self.window.Document().is_fully_active() {
             return Err(Error::Security);
         }

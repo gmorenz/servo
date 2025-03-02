@@ -16,7 +16,7 @@ use dom_struct::dom_struct;
 use fnv::FnvHasher;
 use js::jsapi::JS_GetFunctionObject;
 use js::jsval::JSVal;
-use js::rust::wrappers::CompileFunction;
+use js::rust::jsapi_wrapped::CompileFunction;
 use js::rust::{
     transform_u16_to_source_text, CompileOptionsWrapper, HandleObject, RootedObjectVectorWrapper,
 };
@@ -203,7 +203,7 @@ impl CompiledEventListener {
                             if object.is::<Window>() || object.is::<WorkerGlobalScope>() {
                                 let cx = GlobalScope::get_cx();
                                 rooted!(in(*cx) let mut error: JSVal);
-                                event.Error(cx, error.handle_mut());
+                                event.Error(cx, &mut error.handle_mut());
                                 rooted!(in(*cx) let mut rooted_return_value: JSVal);
                                 let return_value = handler.Call_(
                                     object,
@@ -212,7 +212,7 @@ impl CompiledEventListener {
                                     Some(event.Lineno()),
                                     Some(event.Colno()),
                                     Some(error.handle()),
-                                    rooted_return_value.handle_mut(),
+                                    &mut rooted_return_value.handle_mut(),
                                     exception_handle,
                                 );
                                 // Step 4
@@ -235,7 +235,7 @@ impl CompiledEventListener {
                             None,
                             None,
                             None,
-                            rooted_return_value.handle_mut(),
+                            &mut rooted_return_value.handle_mut(),
                             exception_handle,
                         );
                     },
@@ -267,7 +267,7 @@ impl CompiledEventListener {
                         if let Ok(()) = handler.Call_(
                             object,
                             event,
-                            rooted_return_value.handle_mut(),
+                            &mut rooted_return_value.handle_mut(),
                             exception_handle,
                         ) {
                             let value = rooted_return_value.handle();

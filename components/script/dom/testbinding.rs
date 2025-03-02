@@ -226,10 +226,10 @@ impl TestBindingMethods<crate::DomTypeHolder> for TestBinding {
         let data: [u8; 16] = [0; 16];
 
         rooted!(in (*cx) let mut array = ptr::null_mut::<JSObject>());
-        create_buffer_source(cx, &data, array.handle_mut(), CanGc::note())
+        create_buffer_source(cx, &data, &mut array.handle_mut(), CanGc::note())
             .expect("Creating ClampedU8 array should never fail")
     }
-    fn AnyAttribute(&self, _: SafeJSContext, _: MutableHandleValue) {}
+    fn AnyAttribute(&self, _: SafeJSContext, _: &mut MutableHandleValue) {}
     fn SetAnyAttribute(&self, _: SafeJSContext, _: HandleValue) {}
     #[allow(unsafe_code)]
     fn ObjectAttribute(&self, cx: SafeJSContext) -> NonNull<JSObject> {
@@ -424,7 +424,7 @@ impl TestBindingMethods<crate::DomTypeHolder> for TestBinding {
             can_gc,
         )
     }
-    fn ReceiveAny(&self, _: SafeJSContext, _: MutableHandleValue) {}
+    fn ReceiveAny(&self, _: SafeJSContext, _: &mut MutableHandleValue) {}
     fn ReceiveObject(&self, cx: SafeJSContext) -> NonNull<JSObject> {
         self.ObjectAttribute(cx)
     }

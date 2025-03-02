@@ -9,7 +9,7 @@ use html5ever::{local_name, namespace_url, ns, LocalName};
 use js::conversions::ToJSValConvertible;
 use js::glue::{UnwrapObjectDynamic, UnwrapObjectStatic};
 use js::jsapi::{CallArgs, CurrentGlobalOrNull, JSAutoRealm, JSObject};
-use js::rust::wrappers::{JS_SetPrototype, JS_WrapObject};
+use js::rust::jsapi_wrapped::{JS_SetPrototype, JS_WrapObject};
 use js::rust::{HandleObject, MutableHandleObject, MutableHandleValue};
 
 use super::utils::ProtoOrIfaceArray;
@@ -129,7 +129,7 @@ unsafe fn html_constructor(
             HTMLElementBinding::GetConstructorObject(
                 cx,
                 global_object.handle(),
-                constructor.handle_mut(),
+                &mut constructor.handle_mut(),
             );
         } else {
             // Step 5
@@ -137,7 +137,7 @@ unsafe fn html_constructor(
                 definition.local_name.clone(),
                 cx,
                 global_object.handle(),
-                constructor.handle_mut(),
+                &mut constructor.handle_mut(),
             );
         }
         // Callee must be the same as the element interface's constructor object.
@@ -154,7 +154,7 @@ unsafe fn html_constructor(
 
     // Step 6
     rooted!(in(*cx) let mut prototype = ptr::null_mut::<JSObject>());
-    get_desired_proto(cx, call_args, proto_id, creator, prototype.handle_mut())?;
+    get_desired_proto(cx, call_args, proto_id, creator, &mut prototype.handle_mut())?;
 
     let entry = definition.construction_stack.borrow().last().cloned();
     let result = match entry {
@@ -220,13 +220,13 @@ unsafe fn html_constructor(
     };
 
     rooted!(in(*cx) let mut element = result.reflector().get_jsobject().get());
-    if !JS_WrapObject(*cx, element.handle_mut()) {
+    if !JS_WrapObject(*cx, &mut element.handle_mut()) {
         return Err(());
     }
 
     JS_SetPrototype(*cx, element.handle(), prototype.handle());
 
-    result.to_jsval(*cx, MutableHandleValue::from_raw(call_args.rval()));
+    result.to_jsval(*cx, &mut MutableHandleValue::from_raw(call_args.rval()));
     Ok(())
 }
 
@@ -238,7 +238,7 @@ fn get_constructor_object_from_local_name(
     name: LocalName,
     cx: JSContext,
     global: HandleObject,
-    rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) -> bool {
     let constructor_fn = match name {
         local_name!("a") => HTMLAnchorElementBinding::GetConstructorObject,
@@ -420,7 +420,7 @@ pub(crate) unsafe fn call_default_constructor<D: crate::DomTypes>(
     }
 
     rooted!(in(*cx) let mut desired_proto = ptr::null_mut::<JSObject>());
-    let proto_result = get_desired_proto(cx, args, proto_id, creator, desired_proto.handle_mut());
+    let proto_result = get_desired_proto(cx, args, proto_id, creator, &mut desired_proto.handle_mut());
     if proto_result.is_err() {
         return false;
     }

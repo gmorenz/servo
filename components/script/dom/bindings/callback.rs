@@ -13,7 +13,7 @@ use js::jsapi::{
     AddRawValueRoot, EnterRealm, Heap, IsCallable, JSObject, LeaveRealm, Realm, RemoveRawValueRoot,
 };
 use js::jsval::{JSVal, ObjectValue, UndefinedValue};
-use js::rust::wrappers::{JS_GetProperty, JS_WrapObject};
+use js::rust::jsapi_wrapped::{JS_GetProperty, JS_WrapObject};
 use js::rust::{MutableHandleValue, Runtime};
 
 use crate::dom::bindings::codegen::Bindings::WindowBinding::Window_Binding::WindowMethods;
@@ -190,7 +190,7 @@ impl<D: DomTypes> CallbackInterface<D> {
         rooted!(in(*cx) let obj = self.callback_holder().get());
         unsafe {
             let c_name = CString::new(name).unwrap();
-            if !JS_GetProperty(*cx, obj.handle(), c_name.as_ptr(), callable.handle_mut()) {
+            if !JS_GetProperty(*cx, obj.handle(), c_name.as_ptr(), &mut callable.handle_mut()) {
                 return Err(Error::JSFailed);
             }
 
@@ -211,13 +211,13 @@ pub(crate) use script_bindings::callback::ThisReflector;
 pub(crate) fn wrap_call_this_value<T: ThisReflector>(
     cx: JSContext,
     p: &T,
-    mut rval: MutableHandleValue,
+    rval: &mut MutableHandleValue,
 ) -> bool {
     rooted!(in(*cx) let mut obj = p.jsobject());
     assert!(!obj.is_null());
 
     unsafe {
-        if !JS_WrapObject(*cx, obj.handle_mut()) {
+        if !JS_WrapObject(*cx, &mut obj.handle_mut()) {
             return false;
         }
     }

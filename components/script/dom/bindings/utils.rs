@@ -27,7 +27,7 @@ use js::jsapi::{
     MutableHandleValue as RawMutableHandleValue, ObjectOpResult, StringIsArrayIndex,
 };
 use js::jsval::{JSVal, UndefinedValue};
-use js::rust::wrappers::{
+use js::rust::jsapi_wrapped::{
     CallOriginalPromiseReject, JS_DeletePropertyById, JS_ForwardGetPropertyTo,
     JS_GetPendingException, JS_GetProperty, JS_GetPrototype, JS_HasProperty, JS_HasPropertyById,
     JS_SetPendingException, JS_SetProperty,
@@ -121,7 +121,7 @@ pub(crate) use script_bindings::utils::{DOMClass, DOMJSClass};
 pub(crate) fn to_frozen_array<T: ToJSValConvertible>(
     convertibles: &[T],
     cx: SafeJSContext,
-    rval: MutableHandleValue,
+    rval: &mut MutableHandleValue,
 ) {
     unsafe { convertibles.to_jsval(*cx, rval) };
 
@@ -153,10 +153,10 @@ pub(crate) unsafe fn get_property_on_prototype(
     receiver: HandleValue,
     id: HandleId,
     found: *mut bool,
-    vp: MutableHandleValue,
+    vp: &mut MutableHandleValue,
 ) -> bool {
     rooted!(in(cx) let mut proto = ptr::null_mut::<JSObject>());
-    if !JS_GetPrototype(cx, proxy, proto.handle_mut()) || proto.is_null() {
+    if !JS_GetPrototype(cx, proxy, &mut proto.handle_mut()) || proto.is_null() {
         *found = false;
         return true;
     }
@@ -300,7 +300,7 @@ pub(crate) fn get_dictionary_property(
     cx: *mut JSContext,
     object: HandleObject,
     property: &str,
-    rval: MutableHandleValue,
+    rval: &mut MutableHandleValue,
 ) -> Result<bool, ()> {
     fn has_property(
         cx: *mut JSContext,
@@ -314,7 +314,7 @@ pub(crate) fn get_dictionary_property(
         cx: *mut JSContext,
         object: HandleObject,
         property: &CString,
-        value: MutableHandleValue,
+        value: &mut MutableHandleValue,
     ) -> bool {
         unsafe { JS_GetProperty(cx, object, property.as_ptr(), value) }
     }
@@ -371,7 +371,7 @@ pub(crate) unsafe fn has_property_on_prototype(
     found: &mut bool,
 ) -> bool {
     rooted!(in(cx) let mut proto = ptr::null_mut::<JSObject>());
-    if !JS_GetPrototype(cx, proxy, proto.handle_mut()) {
+    if !JS_GetPrototype(cx, proxy, &mut proto.handle_mut()) {
         return false;
     }
     assert!(!proto.is_null());
@@ -658,12 +658,12 @@ pub(crate) unsafe fn exception_to_promise(
     _can_gc: CanGc,
 ) -> bool {
     rooted!(in(cx) let mut exception = UndefinedValue());
-    if !JS_GetPendingException(cx, exception.handle_mut()) {
+    if !JS_GetPendingException(cx, &mut exception.handle_mut()) {
         return false;
     }
     JS_ClearPendingException(cx);
     if let Some(promise) = NonNull::new(CallOriginalPromiseReject(cx, exception.handle())) {
-        promise.to_jsval(cx, MutableHandleValue::from_raw(rval));
+        promise.to_jsval(cx, &mut MutableHandleValue::from_raw(rval));
         true
     } else {
         // We just give up.  Put the exception back.

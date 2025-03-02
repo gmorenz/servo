@@ -21,7 +21,7 @@ use js::jsapi::{
     JS_STRUCTURED_CLONE_VERSION,
 };
 use js::jsval::UndefinedValue;
-use js::rust::wrappers::{JS_ReadStructuredClone, JS_WriteStructuredClone};
+use js::rust::jsapi_wrapped::{JS_ReadStructuredClone, JS_WriteStructuredClone};
 use js::rust::{CustomAutoRooterGuard, HandleValue, MutableHandleValue};
 use script_traits::serializable::BlobImpl;
 use script_traits::transferable::MessagePortImpl;
@@ -288,7 +288,7 @@ pub(crate) fn write(
     unsafe {
         rooted!(in(*cx) let mut val = UndefinedValue());
         if let Some(transfer) = transfer {
-            transfer.to_jsval(*cx, val.handle_mut());
+            transfer.to_jsval(*cx, &mut val.handle_mut());
         }
         let mut sc_writer = StructuredDataWriter {
             ports: None,
@@ -342,7 +342,7 @@ pub(crate) fn write(
 pub(crate) fn read(
     global: &GlobalScope,
     mut data: StructuredSerializedData,
-    rval: MutableHandleValue,
+    rval: &mut MutableHandleValue,
 ) -> Result<Vec<DomRoot<MessagePort>>, ()> {
     let cx = GlobalScope::get_cx();
     let _ac = enter_realm(global);

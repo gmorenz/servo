@@ -184,7 +184,7 @@ impl UnderlyingSourceContainer {
                         if let Err(error) = start.Call_(
                             &SafeHandle::from_raw(this_obj.handle()),
                             controller,
-                            result.handle_mut(),
+                            &mut result.handle_mut(),
                             ExceptionHandling::Rethrow,
                         ) {
                             return Some(Err(error));

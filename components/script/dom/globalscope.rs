@@ -35,7 +35,7 @@ use js::jsapi::{
 };
 use js::jsval::{PrivateValue, UndefinedValue};
 use js::panic::maybe_resume_unwind;
-use js::rust::wrappers::{JS_ExecuteScript, JS_GetScriptPrivate};
+use js::rust::jsapi_wrapped::{JS_ExecuteScript, JS_GetScriptPrivate};
 use js::rust::{
     describe_scripted_caller, get_object_class, transform_str_to_source_text,
     CompileOptionsWrapper, CustomAutoRooter, CustomAutoRooterGuard, HandleValue,
@@ -1190,7 +1190,7 @@ impl GlobalScope {
                                 rooted!(in(*GlobalScope::get_cx()) let mut message = UndefinedValue());
 
                                 // Step 10.3 StructuredDeserialize(serialized, targetRealm).
-                                if let Ok(ports) = structuredclone::read(&global, data, message.handle_mut()) {
+                                if let Ok(ports) = structuredclone::read(&global, data, &mut message.handle_mut()) {
                                     // Step 10.4, Fire an event named message at destination.
                                     MessageEvent::dispatch_jsval(
                                         destination.upcast(),
@@ -1247,7 +1247,7 @@ impl GlobalScope {
         if let Some((dom_port, PortMessageTask { origin, data })) = should_dispatch {
             // Substep 3-4
             rooted!(in(*GlobalScope::get_cx()) let mut message_clone = UndefinedValue());
-            if let Ok(ports) = structuredclone::read(self, data, message_clone.handle_mut()) {
+            if let Ok(ports) = structuredclone::read(self, data, &mut message_clone.handle_mut()) {
                 // Substep 6
                 // Dispatch the event, using the dom message-port.
                 MessageEvent::dispatch_jsval(
@@ -2511,7 +2511,7 @@ impl GlobalScope {
     pub(crate) fn evaluate_js_on_global_with_result(
         &self,
         code: &str,
-        rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
         fetch_options: ScriptFetchOptions,
         script_base_url: ServoUrl,
         can_gc: CanGc,
@@ -2535,7 +2535,7 @@ impl GlobalScope {
         &self,
         code: &SourceCode,
         filename: &str,
-        rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
         line_number: u32,
         fetch_options: ScriptFetchOptions,
         script_base_url: ServoUrl,
@@ -2585,7 +2585,7 @@ impl GlobalScope {
             assert!(!compiled_script.is_null());
 
             rooted!(in(*cx) let mut script_private = UndefinedValue());
-            JS_GetScriptPrivate(*compiled_script, script_private.handle_mut());
+            JS_GetScriptPrivate(*compiled_script, &mut script_private.handle_mut());
 
             // When `ScriptPrivate` for the compiled script is undefined,
             // we need to set it so that it can be used in dynamic import context.
@@ -2907,7 +2907,7 @@ impl GlobalScope {
     pub(crate) fn supported_performance_entry_types(
         &self,
         cx: SafeJSContext,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         self.frozen_supported_performance_entry_types.get_or_init(
             || {
@@ -3202,7 +3202,7 @@ impl GlobalScope {
         cx: SafeJSContext,
         value: HandleValue,
         options: RootedTraceableBox<StructuredSerializeOptions>,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) -> Fallible<()> {
         let mut rooted = CustomAutoRooter::new(
             options

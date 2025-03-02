@@ -13,7 +13,7 @@ use js::error::{throw_range_error, throw_type_error};
 use js::jsapi::StackFormat as JSStackFormat;
 use js::jsapi::{ExceptionStackBehavior, JS_ClearPendingException, JS_IsExceptionPending};
 use js::jsval::UndefinedValue;
-use js::rust::wrappers::{JS_ErrorFromException, JS_GetPendingException, JS_SetPendingException};
+use js::rust::jsapi_wrapped::{JS_ErrorFromException, JS_GetPendingException, JS_SetPendingException};
 use js::rust::{HandleObject, HandleValue, MutableHandleValue};
 use libc::c_uint;
 pub(crate) use script_bindings::error::*;
@@ -99,7 +99,7 @@ pub(crate) fn throw_dom_exception(
         assert!(!JS_IsExceptionPending(*cx));
         let exception = DOMException::new(global, code, can_gc);
         rooted!(in(*cx) let mut thrown = UndefinedValue());
-        exception.to_jsval(*cx, thrown.handle_mut());
+        exception.to_jsval(*cx, &mut thrown.handle_mut());
         JS_SetPendingException(*cx, thrown.handle(), ExceptionStackBehavior::Capture);
     }
 }
@@ -221,7 +221,7 @@ pub(crate) fn report_pending_exception(
     rooted!(in(*cx) let mut value = UndefinedValue());
 
     unsafe {
-        if !JS_GetPendingException(*cx, value.handle_mut()) {
+        if !JS_GetPendingException(*cx, &mut value.handle_mut()) {
             JS_ClearPendingException(*cx);
             error!("Uncaught exception: JS_GetPendingException failed");
             return;
@@ -275,13 +275,13 @@ pub(crate) fn throw_constructor_without_new(cx: SafeJSContext, name: &str) {
 }
 
 pub(crate) trait ErrorToJsval {
-    fn to_jsval(self, cx: SafeJSContext, global: &GlobalScope, rval: MutableHandleValue);
+    fn to_jsval(self, cx: SafeJSContext, global: &GlobalScope, rval: &mut MutableHandleValue);
 }
 
 impl ErrorToJsval for Error {
     /// Convert this error value to a JS value, consuming it in the process.
     #[allow(clippy::wrong_self_convention)]
-    fn to_jsval(self, cx: SafeJSContext, global: &GlobalScope, rval: MutableHandleValue) {
+    fn to_jsval(self, cx: SafeJSContext, global: &GlobalScope, rval: &mut MutableHandleValue) {
         match self {
             Error::JSFailed => (),
             _ => unsafe { assert!(!JS_IsExceptionPending(*cx)) },

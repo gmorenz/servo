@@ -14,7 +14,7 @@ pub(crate) mod base {
     };
     pub(crate) use js::jsval::{JSVal, NullValue, ObjectOrNullValue, ObjectValue, UndefinedValue};
     pub(crate) use js::panic::maybe_resume_unwind;
-    pub(crate) use js::rust::wrappers::{Call, JS_WrapValue};
+    pub(crate) use js::rust::jsapi_wrapped::{Call, JS_WrapValue};
     pub(crate) use js::rust::{HandleObject, HandleValue, MutableHandleObject, MutableHandleValue};
 
     pub(crate) use crate::dom::bindings::callback::{
@@ -79,7 +79,7 @@ pub(crate) mod module {
     };
     pub(crate) use js::jsval::PrivateValue;
     pub(crate) use js::panic::wrap_panic;
-    pub(crate) use js::rust::wrappers::{
+    pub(crate) use js::rust::jsapi_wrapped::{
         int_to_jsid, AppendToIdVector, Call, GetPropertyKeys, JS_CopyOwnPropertiesAndPrivateFields,
         JS_DefineProperty, JS_DefinePropertyById2, JS_GetProperty,
         JS_InitializePropertiesFromCompatibleNativeObject, JS_NewObjectWithGivenProto,

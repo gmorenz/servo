@@ -166,7 +166,7 @@ impl ErrorEventMethods<crate::DomTypeHolder> for ErrorEvent {
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-errorevent-error
-    fn Error(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Error(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.error.get());
     }
 

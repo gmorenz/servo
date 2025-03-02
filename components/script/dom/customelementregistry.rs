@@ -14,7 +14,7 @@ use js::conversions::ToJSValConvertible;
 use js::glue::UnwrapObjectStatic;
 use js::jsapi::{HandleValueArray, Heap, IsCallable, IsConstructor, JSAutoRealm, JSObject};
 use js::jsval::{BooleanValue, JSVal, NullValue, ObjectValue, UndefinedValue};
-use js::rust::wrappers::{Construct1, JS_GetProperty, SameValue};
+use js::rust::jsapi_wrapped::{Construct1, JS_GetProperty, SameValue};
 use js::rust::{HandleObject, HandleValue, MutableHandleValue};
 
 use super::bindings::trace::HashMapTracedValues;
@@ -139,7 +139,7 @@ impl CustomElementRegistry {
     fn check_prototype(
         &self,
         constructor: HandleObject,
-        prototype: MutableHandleValue,
+        prototype: &mut MutableHandleValue,
     ) -> ErrorResult {
         unsafe {
             // Step 10.1
@@ -212,7 +212,7 @@ impl CustomElementRegistry {
                 *cx,
                 constructor,
                 c"observedAttributes".as_ptr(),
-                observed_attributes.handle_mut(),
+                &mut observed_attributes.handle_mut(),
             )
         } {
             return Err(Error::JSFailed);
@@ -247,7 +247,7 @@ impl CustomElementRegistry {
                 *cx,
                 constructor,
                 c"formAssociated".as_ptr(),
-                form_associated_value.handle_mut(),
+                &mut form_associated_value.handle_mut(),
             )
         } {
             return Err(Error::JSFailed);
@@ -277,7 +277,7 @@ impl CustomElementRegistry {
                 *cx,
                 constructor,
                 c"disabledFeatures".as_ptr(),
-                disabled_features.handle_mut(),
+                &mut disabled_features.handle_mut(),
             )
         } {
             return Err(Error::JSFailed);
@@ -317,7 +317,7 @@ fn get_callback(
             *cx,
             prototype,
             name.as_ptr() as *const _,
-            callback.handle_mut(),
+            &mut callback.handle_mut(),
         ) {
             return Err(Error::JSFailed);
         }
@@ -420,7 +420,7 @@ impl CustomElementRegistryMethods<crate::DomTypeHolder> for CustomElementRegistr
         rooted!(in(*cx) let mut prototype = UndefinedValue());
         {
             let _ac = JSAutoRealm::new(*cx, constructor.get());
-            if let Err(error) = self.check_prototype(constructor.handle(), prototype.handle_mut()) {
+            if let Err(error) = self.check_prototype(constructor.handle(), &mut prototype.handle_mut()) {
                 self.element_definition_is_running.set(false);
                 return Err(error);
             }
@@ -543,7 +543,7 @@ impl CustomElementRegistryMethods<crate::DomTypeHolder> for CustomElementRegistr
                 rooted!(in(*cx) let mut constructor = UndefinedValue());
                 definition
                     .constructor
-                    .to_jsval(*cx, constructor.handle_mut());
+                    .to_jsval(*cx, &mut constructor.handle_mut());
                 promise.resolve_native(&constructor.get(), can_gc);
             }
         }
@@ -552,7 +552,7 @@ impl CustomElementRegistryMethods<crate::DomTypeHolder> for CustomElementRegistr
 
     /// <https://html.spec.whatwg.org/multipage/#dom-customelementregistry-get>
     #[allow(unsafe_code)]
-    fn Get(&self, cx: JSContext, name: DOMString, mut retval: MutableHandleValue) {
+    fn Get(&self, cx: JSContext, name: DOMString, retval: &mut MutableHandleValue) {
         match self.definitions.borrow().get(&LocalName::from(&*name)) {
             Some(definition) => unsafe {
                 definition.constructor.to_jsval(*cx, retval);
@@ -597,7 +597,7 @@ impl CustomElementRegistryMethods<crate::DomTypeHolder> for CustomElementRegistr
                 rooted!(in(*cx) let mut constructor = UndefinedValue());
                 definition
                     .constructor
-                    .to_jsval(*cx, constructor.handle_mut());
+                    .to_jsval(*cx, &mut constructor.handle_mut());
                 let promise = Promise::new_in_current_realm(comp, can_gc);
                 promise.resolve_native(&constructor.get(), can_gc);
                 return promise;
@@ -734,7 +734,7 @@ impl CustomElementDefinition {
             let _ac = JSAutoRealm::new(*cx, self.constructor.callback());
             // Step 4.1.2. Set result to the result of constructing C, with no arguments.
             let args = HandleValueArray::empty();
-            if unsafe { !Construct1(*cx, constructor.handle(), &args, element.handle_mut()) } {
+            if unsafe { !Construct1(*cx, constructor.handle(), &args, &mut element.handle_mut()) } {
                 return Err(Error::JSFailed);
             }
         }
@@ -916,7 +916,7 @@ fn run_upgrade_constructor(
     rooted!(in(*cx) let constructor_val = ObjectValue(constructor.callback()));
     rooted!(in(*cx) let mut element_val = UndefinedValue());
     unsafe {
-        element.to_jsval(*cx, element_val.handle_mut());
+        element.to_jsval(*cx, &mut element_val.handle_mut());
     }
     rooted!(in(*cx) let mut construct_result = ptr::null_mut::<JSObject>());
     {
@@ -937,7 +937,7 @@ fn run_upgrade_constructor(
                 *cx,
                 constructor_val.handle(),
                 &args,
-                construct_result.handle_mut(),
+                &mut construct_result.handle_mut(),
             )
         } {
             return Err(Error::JSFailed);
@@ -1018,7 +1018,7 @@ impl CustomElementReaction {
                 let _ = callback.Call_(
                     element,
                     arguments,
-                    value.handle_mut(),
+                    &mut value.handle_mut(),
                     ExceptionHandling::Report,
                 );
             },
@@ -1160,20 +1160,20 @@ impl CustomElementReactionStack {
                 let local_name = DOMString::from(&*local_name);
                 rooted!(in(*cx) let mut name_value = UndefinedValue());
                 unsafe {
-                    local_name.to_jsval(*cx, name_value.handle_mut());
+                    local_name.to_jsval(*cx, &mut name_value.handle_mut());
                 }
 
                 rooted!(in(*cx) let mut old_value = NullValue());
                 if let Some(old_val) = old_val {
                     unsafe {
-                        old_val.to_jsval(*cx, old_value.handle_mut());
+                        old_val.to_jsval(*cx, &mut old_value.handle_mut());
                     }
                 }
 
                 rooted!(in(*cx) let mut value = NullValue());
                 if let Some(val) = val {
                     unsafe {
-                        val.to_jsval(*cx, value.handle_mut());
+                        val.to_jsval(*cx, &mut value.handle_mut());
                     }
                 }
 
@@ -1181,7 +1181,7 @@ impl CustomElementReactionStack {
                 if namespace != ns!() {
                     let namespace = DOMString::from(&*namespace);
                     unsafe {
-                        namespace.to_jsval(*cx, namespace_value.handle_mut());
+                        namespace.to_jsval(*cx, &mut namespace_value.handle_mut());
                     }
                 }
 

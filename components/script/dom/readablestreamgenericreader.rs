@@ -99,7 +99,7 @@ pub(crate) trait ReadableStreamGenericReader {
                 Error::Type("Cannot release lock due to stream state.".to_owned()).to_jsval(
                     cx,
                     &stream.global(),
-                    error.handle_mut(),
+                    &mut error.handle_mut(),
                 );
 
                 self.set_closed_promise(Promise::new_rejected(

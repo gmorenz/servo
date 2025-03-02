@@ -348,7 +348,7 @@ impl FileReader {
         unsafe {
             rooted!(in(*cx) let mut array_buffer = ptr::null_mut::<JSObject>());
             assert!(
-                ArrayBuffer::create(*cx, CreateWith::Slice(bytes), array_buffer.handle_mut())
+                ArrayBuffer::create(*cx, CreateWith::Slice(bytes), &mut array_buffer.handle_mut())
                     .is_ok()
             );
 

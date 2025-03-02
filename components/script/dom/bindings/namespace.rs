@@ -45,7 +45,7 @@ pub(crate) fn create_namespace_object(
     methods: &[Guard<&'static [JSFunctionSpec]>],
     constants: &[Guard<&'static [ConstantSpec]>],
     name: &CStr,
-    rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     create_object(cx, global, proto, &class.0, methods, &[], constants, rval);
     define_on_global_object(cx, global, name, rval.handle());

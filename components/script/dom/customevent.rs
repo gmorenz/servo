@@ -105,7 +105,7 @@ impl CustomEventMethods<crate::DomTypeHolder> for CustomEvent {
     }
 
     // https://dom.spec.whatwg.org/#dom-customevent-detail
-    fn Detail(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Detail(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.detail.get())
     }
 

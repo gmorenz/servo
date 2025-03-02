@@ -583,7 +583,7 @@ impl WebGL2RenderingContext {
         &self,
         attachment: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) -> WebGLResult<()> {
         match attachment {
             constants::BACK | constants::DEPTH | constants::STENCIL => {},
@@ -652,7 +652,7 @@ impl WebGL2RenderingContext {
         target: u32,
         attachment: u32,
         pname: u32,
-        mut rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
     ) -> WebGLResult<()> {
         use crate::dom::webglframebuffer::WebGLFramebufferAttachmentRoot::{Renderbuffer, Texture};
 
@@ -961,7 +961,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         _cx: JSContext,
         target: u32,
         parameter: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let buffer = handle_potential_webgl_error!(
             self.base,
@@ -973,7 +973,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
 
     #[allow(unsafe_code)]
     /// <https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.3>
-    fn GetParameter(&self, cx: JSContext, parameter: u32, mut rval: MutableHandleValue) {
+    fn GetParameter(&self, cx: JSContext, parameter: u32, rval: &mut MutableHandleValue) {
         match parameter {
             constants::VERSION => unsafe {
                 "WebGL 2.0".to_jsval(*cx, rval);
@@ -1158,7 +1158,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
     }
 
     /// <https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.8>
-    fn GetTexParameter(&self, cx: JSContext, target: u32, pname: u32, retval: MutableHandleValue) {
+    fn GetTexParameter(&self, cx: JSContext, target: u32, pname: u32, retval: &mut MutableHandleValue) {
         self.base.GetTexParameter(cx, target, pname, retval)
     }
 
@@ -1194,7 +1194,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         target: u32,
         attachment: u32,
         pname: u32,
-        mut rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
     ) {
         let fb_slot = match target {
             constants::FRAMEBUFFER | constants::DRAW_FRAMEBUFFER => {
@@ -1236,7 +1236,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         cx: JSContext,
         target: u32,
         pname: u32,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         self.base
             .GetRenderbufferParameter(cx, target, pname, retval)
@@ -1916,7 +1916,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         cx: JSContext,
         program: &WebGLProgram,
         param_id: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self.base,
@@ -1949,7 +1949,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         cx: JSContext,
         shader: &WebGLShader,
         param_id: u32,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         self.base.GetShaderParameter(cx, shader, param_id, retval)
     }
@@ -1971,7 +1971,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         cx: JSContext,
         target: u32,
         index: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         let bindings = match target {
             constants::TRANSFORM_FEEDBACK_BUFFER_BINDING |
@@ -2020,7 +2020,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
     }
 
     /// <https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.9>
-    fn GetVertexAttrib(&self, cx: JSContext, index: u32, pname: u32, retval: MutableHandleValue) {
+    fn GetVertexAttrib(&self, cx: JSContext, index: u32, pname: u32, retval: &mut MutableHandleValue) {
         self.base.GetVertexAttrib(cx, index, pname, retval)
     }
 
@@ -2782,7 +2782,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         cx: JSContext,
         program: &WebGLProgram,
         location: &WebGLUniformLocation,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self.base,
@@ -3724,7 +3724,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
 
     /// <https://www.khronos.org/registry/webgl/specs/latest/2.0/#3.7.12>
     #[rustfmt::skip]
-    fn GetQueryParameter(&self, _cx: JSContext, query: &WebGLQuery, pname: u32, mut retval: MutableHandleValue) {
+    fn GetQueryParameter(&self, _cx: JSContext, query: &WebGLQuery, pname: u32, retval: &mut MutableHandleValue) {
         handle_potential_webgl_error!(
             self.base,
             self.base.validate_ownership(query),
@@ -3830,7 +3830,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         _cx: JSContext,
         sync: &WebGLSync,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         if !sync.is_valid() {
             self.base.webgl_error(InvalidOperation);
@@ -3916,7 +3916,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         _cx: JSContext,
         sampler: &WebGLSampler,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self.base,
@@ -4292,7 +4292,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         program: &WebGLProgram,
         indices: Vec<u32>,
         pname: u32,
-        mut rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self.base,
@@ -4344,7 +4344,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         program: &WebGLProgram,
         block_index: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         handle_potential_webgl_error!(
             self.base,
@@ -4366,7 +4366,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
             constants::UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES => unsafe {
                 let values = values.iter().map(|&v| v as u32).collect::<Vec<_>>();
                 rooted!(in(*cx) let mut result = ptr::null_mut::<JSObject>());
-                Uint32Array::create(*cx, CreateWith::Slice(&values), result.handle_mut()).unwrap();
+                Uint32Array::create(*cx, CreateWith::Slice(&values), &mut result.handle_mut()).unwrap();
                 retval.set(ObjectValue(result.get()))
             },
             constants::UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER |
@@ -4574,7 +4574,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
         target: u32,
         internal_format: u32,
         pname: u32,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) {
         if target != constants::RENDERBUFFER {
             self.base.webgl_error(InvalidEnum);
@@ -4600,7 +4600,7 @@ impl WebGL2RenderingContextMethods<crate::DomTypeHolder> for WebGL2RenderingCont
                 Int32Array::create(
                     *cx,
                     CreateWith::Slice(&receiver.recv().unwrap()),
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                 )
                 .unwrap();
                 retval.set(ObjectValue(rval.get()))

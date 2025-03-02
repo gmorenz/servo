@@ -886,7 +886,7 @@ impl HTMLInputElement {
         let _ac = enter_realm(self);
         rooted!(in(*cx) let mut pattern = ptr::null_mut::<JSObject>());
 
-        if compile_pattern(cx, &pattern_str, pattern.handle_mut()) {
+        if compile_pattern(cx, &pattern_str, &mut pattern.handle_mut()) {
             if self.Multiple() && self.does_multiple_apply() {
                 !split_commas(value)
                     .all(|s| matches_js_regex(cx, pattern.handle(), s).unwrap_or(true))
@@ -2983,7 +2983,7 @@ fn round_halves_positive(n: f64) -> f64 {
 // This is used to compile JS-compatible regex provided in pattern attribute
 // that matches only the entirety of string.
 // https://html.spec.whatwg.org/multipage/#compiled-pattern-regular-expression
-fn compile_pattern(cx: SafeJSContext, pattern_str: &str, out_regex: MutableHandleObject) -> bool {
+fn compile_pattern(cx: SafeJSContext, pattern_str: &str, out_regex: &mut MutableHandleObject) -> bool {
     // First check if pattern compiles...
     if check_js_regex_syntax(cx, pattern_str) {
         // ...and if it does make pattern that matches only the entirety of string
@@ -3024,7 +3024,7 @@ fn check_js_regex_syntax(cx: SafeJSContext, pattern: &str) -> bool {
 }
 
 #[allow(unsafe_code)]
-fn new_js_regex(cx: SafeJSContext, pattern: &str, mut out_regex: MutableHandleObject) -> bool {
+fn new_js_regex(cx: SafeJSContext, pattern: &str, out_regex: &mut MutableHandleObject) -> bool {
     let pattern: Vec<u16> = pattern.encode_utf16().collect();
     unsafe {
         out_regex.set(NewUCRegExpObject(

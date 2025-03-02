@@ -266,7 +266,7 @@ impl MessageEventMethods<crate::DomTypeHolder> for MessageEvent {
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-messageevent-data>
-    fn Data(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Data(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.data.get())
     }
 
@@ -302,7 +302,7 @@ impl MessageEventMethods<crate::DomTypeHolder> for MessageEvent {
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-messageevent-ports>
-    fn Ports(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Ports(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         self.frozen_ports.get_or_init(
             || {
                 self.ports

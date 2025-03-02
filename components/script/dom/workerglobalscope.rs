@@ -315,7 +315,7 @@ impl WorkerGlobalScopeMethods<crate::DomTypeHolder> for WorkerGlobalScope {
                 &source,
                 url.as_str(),
                 1,
-                rval.handle_mut(),
+                &mut rval.handle_mut(),
             );
 
             maybe_resume_unwind();
@@ -470,7 +470,7 @@ impl WorkerGlobalScopeMethods<crate::DomTypeHolder> for WorkerGlobalScope {
         cx: JSContext,
         value: HandleValue,
         options: RootedTraceableBox<StructuredSerializeOptions>,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) -> Fallible<()> {
         self.upcast::<GlobalScope>()
             .structured_clone(cx, value, options, retval)
@@ -488,7 +488,7 @@ impl WorkerGlobalScope {
             &source,
             self.worker_url.borrow().as_str(),
             1,
-            rval.handle_mut(),
+            &mut rval.handle_mut(),
         ) {
             Ok(_) => (),
             Err(_) => {

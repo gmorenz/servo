@@ -59,7 +59,7 @@ pub(crate) fn handle_evaluate_js(
         global.evaluate_script_on_global_with_result(
             &source_code,
             "<eval>",
-            rval.handle_mut(),
+            &mut rval.handle_mut(),
             1,
             ScriptFetchOptions::default_classic_script(global),
             global.api_base_url(),

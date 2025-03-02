@@ -28,7 +28,7 @@ use js::jsapi::{
 };
 use js::jsid::SymbolId;
 use js::jsval::{ObjectValue, UndefinedValue};
-use js::rust::wrappers::{
+use js::rust::jsapi_wrapped::{
     AppendToIdVector, JS_AlreadyHasOwnPropertyById, JS_NewObjectWithGivenProto,
     SetDataPropertyDescriptor, RUST_INTERNED_STRING_TO_JSID,
 };
@@ -55,7 +55,7 @@ pub(crate) unsafe extern "C" fn shadow_check_callback(
     // TODO: support OverrideBuiltins when #12978 is fixed.
 
     rooted!(in(cx) let mut expando = ptr::null_mut::<JSObject>());
-    get_expando_object(object, expando.handle_mut());
+    get_expando_object(object, &mut expando.handle_mut());
     if !expando.get().is_null() {
         let mut has_own = false;
         let raw_id = Handle::from_raw(id);
@@ -91,7 +91,7 @@ pub(crate) unsafe extern "C" fn define_property(
     result: *mut ObjectOpResult,
 ) -> bool {
     rooted!(in(cx) let mut expando = ptr::null_mut::<JSObject>());
-    ensure_expando_object(cx, proxy, expando.handle_mut());
+    ensure_expando_object(cx, proxy, &mut expando.handle_mut());
     JS_DefinePropertyById(cx, expando.handle().into(), id, desc, result)
 }
 
@@ -103,7 +103,7 @@ pub(crate) unsafe extern "C" fn delete(
     bp: *mut ObjectOpResult,
 ) -> bool {
     rooted!(in(cx) let mut expando = ptr::null_mut::<JSObject>());
-    get_expando_object(proxy, expando.handle_mut());
+    get_expando_object(proxy, &mut expando.handle_mut());
     if expando.is_null() {
         (*bp).code_ = 0 /* OkCode */;
         return true;
@@ -153,7 +153,7 @@ pub(crate) unsafe extern "C" fn get_prototype_if_ordinary(
 }
 
 /// Get the expando object, or null if there is none.
-pub(crate) unsafe fn get_expando_object(obj: RawHandleObject, mut expando: MutableHandleObject) {
+pub(crate) unsafe fn get_expando_object(obj: RawHandleObject, expando: &mut MutableHandleObject) {
     assert!(is_dom_proxy(obj.get()));
     let val = &mut UndefinedValue();
     GetProxyPrivate(obj.get(), val);
@@ -169,7 +169,7 @@ pub(crate) unsafe fn get_expando_object(obj: RawHandleObject, mut expando: Mutab
 pub(crate) unsafe fn ensure_expando_object(
     cx: *mut JSContext,
     obj: RawHandleObject,
-    mut expando: MutableHandleObject,
+    expando: &mut MutableHandleObject,
 ) {
     assert!(is_dom_proxy(obj.get()));
     get_expando_object(obj, expando);
@@ -188,7 +188,7 @@ pub(crate) unsafe fn ensure_expando_object(
 /// Set the property descriptor's object to `obj` and set it to enumerable,
 /// and writable if `readonly` is true.
 pub(crate) fn set_property_descriptor(
-    desc: MutableHandle<PropertyDescriptor>,
+    desc: &mut MutableHandle<PropertyDescriptor>,
     value: HandleValue,
     attrs: u32,
     is_none: &mut bool,
@@ -305,7 +305,7 @@ pub(crate) unsafe fn cross_origin_own_property_keys(
     for key in cross_origin_properties.keys() {
         rooted!(in(*cx) let rooted = JS_AtomizeAndPinString(*cx, key));
         rooted!(in(*cx) let mut rooted_jsid: jsid);
-        RUST_INTERNED_STRING_TO_JSID(*cx, rooted.handle().get(), rooted_jsid.handle_mut());
+        RUST_INTERNED_STRING_TO_JSID(*cx, rooted.handle().get(), &mut rooted_jsid.handle_mut());
         AppendToIdVector(props, rooted_jsid.handle());
     }
 
@@ -379,7 +379,7 @@ pub(crate) unsafe extern "C" fn maybe_cross_origin_get_prototype_if_ordinary_raw
 pub(crate) unsafe fn maybe_cross_origin_get_prototype<D: crate::DomTypes>(
     cx: SafeJSContext,
     proxy: RawHandleObject,
-    get_proto_object: unsafe fn(cx: SafeJSContext, global: HandleObject, rval: MutableHandleObject),
+    get_proto_object: unsafe fn(cx: SafeJSContext, global: HandleObject, rval: &mut MutableHandleObject),
     proto: RawMutableHandleObject,
 ) -> bool {
     // > 1. If ! IsPlatformObjectSameOrigin(this) is true, then return ! OrdinaryGetPrototypeOf(this).
@@ -389,7 +389,7 @@ pub(crate) unsafe fn maybe_cross_origin_get_prototype<D: crate::DomTypes>(
         get_proto_object(
             cx,
             global.reflector().get_jsobject(),
-            MutableHandleObject::from_raw(proto),
+            &mut MutableHandleObject::from_raw(proto),
         );
         return !proto.is_null();
     }
@@ -486,7 +486,7 @@ pub(crate) unsafe fn cross_origin_get(
     }
 
     rooted!(in(*cx) let mut getter_jsval = UndefinedValue());
-    getter.get().to_jsval(*cx, getter_jsval.handle_mut());
+    getter.get().to_jsval(*cx, &mut getter_jsval.handle_mut());
 
     // > 7. Return `? Call(getter, Receiver)`.
     jsapi::Call(
@@ -543,7 +543,7 @@ pub(crate) unsafe fn cross_origin_set(
     }
 
     rooted!(in(*cx) let mut setter_jsval = UndefinedValue());
-    setter.get().to_jsval(*cx, setter_jsval.handle_mut());
+    setter.get().to_jsval(*cx, &mut setter_jsval.handle_mut());
 
     // > 3.1. Perform ? Call(setter, Receiver, «V»).
     // >
@@ -662,7 +662,7 @@ pub(crate) unsafe fn cross_origin_property_fallback(
     // >    [[Configurable]]: true }`.
     if is_cross_origin_allowlisted_prop(cx, id) {
         set_property_descriptor(
-            MutableHandle::from_raw(desc),
+            &mut MutableHandle::from_raw(desc),
             HandleValue::undefined(),
             jsapi::JSPROP_READONLY as u32,
             is_none,
@@ -706,7 +706,7 @@ unsafe fn append_cross_origin_allowlisted_prop_keys(
 
     let jsstring = JS_AtomizeAndPinString(*cx, c"then".as_ptr());
     rooted!(in(*cx) let rooted = jsstring);
-    RUST_INTERNED_STRING_TO_JSID(*cx, rooted.handle().get(), id.handle_mut());
+    RUST_INTERNED_STRING_TO_JSID(*cx, rooted.handle().get(), &mut id.handle_mut());
     AppendToIdVector(props, id.handle());
 
     for &allowed_code in ALLOWLISTED_SYMBOL_CODES.iter() {

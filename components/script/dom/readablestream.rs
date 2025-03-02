@@ -420,7 +420,7 @@ impl ReadableStream {
     pub(crate) fn error_native(&self, error: Error, can_gc: CanGc) {
         let cx = GlobalScope::get_cx();
         rooted!(in(*cx) let mut error_val = UndefinedValue());
-        error.to_jsval(cx, &self.global(), error_val.handle_mut());
+        error.to_jsval(cx, &self.global(), &mut error_val.handle_mut());
         self.error(error_val.handle(), can_gc);
     }
 
@@ -674,7 +674,7 @@ impl ReadableStream {
             unsafe {
                 let cx = GlobalScope::get_cx();
                 rooted!(in(*cx) let mut rval = UndefinedValue());
-                self.stored_error.to_jsval(*cx, rval.handle_mut());
+                self.stored_error.to_jsval(*cx, &mut rval.handle_mut());
                 promise.reject_native(&rval.handle(), can_gc);
                 return promise;
             }
@@ -1006,7 +1006,7 @@ pub(crate) fn get_read_promise_done(cx: SafeJSContext, v: &SafeHandleValue) -> R
     unsafe {
         rooted!(in(*cx) let object = v.to_object());
         rooted!(in(*cx) let mut done = UndefinedValue());
-        match get_dictionary_property(*cx, object.handle(), "done", done.handle_mut()) {
+        match get_dictionary_property(*cx, object.handle(), "done", &mut done.handle_mut()) {
             Ok(true) => match bool::from_jsval(*cx, done.handle(), ()) {
                 Ok(ConversionResult::Success(val)) => Ok(val),
                 Ok(ConversionResult::Failure(error)) => Err(Error::Type(error.to_string())),
@@ -1032,7 +1032,7 @@ pub(crate) fn get_read_promise_bytes(
     unsafe {
         rooted!(in(*cx) let object = v.to_object());
         rooted!(in(*cx) let mut bytes = UndefinedValue());
-        match get_dictionary_property(*cx, object.handle(), "value", bytes.handle_mut()) {
+        match get_dictionary_property(*cx, object.handle(), "value", &mut bytes.handle_mut()) {
             Ok(true) => {
                 match Vec::<u8>::from_jsval(*cx, bytes.handle(), ConversionBehavior::EnforceRange) {
                     Ok(ConversionResult::Success(val)) => Ok(val),

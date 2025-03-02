@@ -39,7 +39,7 @@ use js::jsapi::{
     GCReason, Heap, JSAutoRealm, JSContext as RawJSContext, JSObject, JSPROP_ENUMERATE, JS_GC,
 };
 use js::jsval::{NullValue, UndefinedValue};
-use js::rust::wrappers::JS_DefineProperty;
+use js::rust::jsapi_wrapped::JS_DefineProperty;
 use js::rust::{
     CustomAutoRooter, CustomAutoRooterGuard, HandleObject, HandleValue, MutableHandleObject,
     MutableHandleValue,
@@ -798,7 +798,7 @@ impl WindowMethods<crate::DomTypeHolder> for Window {
         &self,
         cx: JSContext,
         in_realm_proof: InRealm,
-        mut retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) -> Fallible<()> {
         // Step 1, Let current be this Window object's browsing context.
         let current = match self.window_proxy.get() {
@@ -1495,7 +1495,7 @@ impl WindowMethods<crate::DomTypeHolder> for Window {
 
     // https://dom.spec.whatwg.org/#dom-window-event
     #[allow(unsafe_code)]
-    fn Event(&self, cx: JSContext, rval: MutableHandleValue) {
+    fn Event(&self, cx: JSContext, rval: &mut MutableHandleValue) {
         if let Some(ref event) = *self.current_event.borrow() {
             unsafe {
                 event.reflector().get_jsobject().to_jsval(*cx, rval);
@@ -1661,7 +1661,7 @@ impl WindowMethods<crate::DomTypeHolder> for Window {
         cx: JSContext,
         value: HandleValue,
         options: RootedTraceableBox<StructuredSerializeOptions>,
-        retval: MutableHandleValue,
+        retval: &mut MutableHandleValue,
     ) -> Fallible<()> {
         self.as_global_scope()
             .structured_clone(cx, value, options, retval)
@@ -1675,7 +1675,7 @@ impl Window {
     pub(crate) fn create_named_properties_object(
         cx: JSContext,
         proto: HandleObject,
-        object: MutableHandleObject,
+        object: &mut MutableHandleObject,
     ) {
         window_named_properties::create(cx, proto, object)
     }
@@ -3011,7 +3011,7 @@ impl Window {
             let obj = this.reflector().get_jsobject();
             let _ac = JSAutoRealm::new(*cx, obj.get());
             rooted!(in(*cx) let mut message_clone = UndefinedValue());
-            if let Ok(ports) = structuredclone::read(this.upcast(), data, message_clone.handle_mut()) {
+            if let Ok(ports) = structuredclone::read(this.upcast(), data, &mut message_clone.handle_mut()) {
                 // Step 7.6, 7.7
                 MessageEvent::dispatch_jsval(
                     this.upcast(),

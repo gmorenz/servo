@@ -23,7 +23,7 @@ use js::jsapi::{
     SetFunctionNativeReserved,
 };
 use js::jsval::{Int32Value, JSVal, ObjectValue, UndefinedValue};
-use js::rust::wrappers::{
+use js::rust::jsapi_wrapped::{
     AddPromiseReactions, CallOriginalPromiseReject, CallOriginalPromiseResolve,
     GetPromiseIsHandled, GetPromiseState, IsPromiseObject, NewPromiseObject, RejectPromise,
     ResolvePromise, SetAnyPromiseIsHandled, SetPromiseUserInputEventHandlingState,
@@ -95,7 +95,7 @@ impl Promise {
     pub(crate) fn new_in_current_realm(_comp: InRealm, can_gc: CanGc) -> Rc<Promise> {
         let cx = GlobalScope::get_cx();
         rooted!(in(*cx) let mut obj = ptr::null_mut::<JSObject>());
-        Promise::create_js_promise(cx, obj.handle_mut(), can_gc);
+        Promise::create_js_promise(cx, &mut obj.handle_mut(), can_gc);
         Promise::new_with_js_promise(obj.handle(), cx)
     }
 
@@ -124,7 +124,7 @@ impl Promise {
     #[allow(unsafe_code)]
     // The apparently-unused CanGc parameter reflects the fact that the JS API calls
     // like JS_NewFunction can trigger a GC.
-    fn create_js_promise(cx: SafeJSContext, mut obj: MutableHandleObject, _can_gc: CanGc) {
+    fn create_js_promise(cx: SafeJSContext, obj: &mut MutableHandleObject, _can_gc: CanGc) {
         unsafe {
             let do_nothing_func = JS_NewFunction(
                 *cx,
@@ -158,7 +158,7 @@ impl Promise {
         let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
         unsafe {
             rooted!(in(*cx) let mut rval = UndefinedValue());
-            value.to_jsval(*cx, rval.handle_mut());
+            value.to_jsval(*cx, &mut rval.handle_mut());
             rooted!(in(*cx) let p = CallOriginalPromiseResolve(*cx, rval.handle()));
             assert!(!p.handle().is_null());
             Promise::new_with_js_promise(p.handle(), cx)
@@ -176,7 +176,7 @@ impl Promise {
         let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
         unsafe {
             rooted!(in(*cx) let mut rval = UndefinedValue());
-            value.to_jsval(*cx, rval.handle_mut());
+            value.to_jsval(*cx, &mut rval.handle_mut());
             rooted!(in(*cx) let p = CallOriginalPromiseReject(*cx, rval.handle()));
             assert!(!p.handle().is_null());
             Promise::new_with_js_promise(p.handle(), cx)
@@ -192,7 +192,7 @@ impl Promise {
         let _ac = enter_realm(self);
         rooted!(in(*cx) let mut v = UndefinedValue());
         unsafe {
-            val.to_jsval(*cx, v.handle_mut());
+            val.to_jsval(*cx, &mut v.handle_mut());
         }
         self.resolve(cx, v.handle(), can_gc);
     }
@@ -216,7 +216,7 @@ impl Promise {
         let _ac = enter_realm(self);
         rooted!(in(*cx) let mut v = UndefinedValue());
         unsafe {
-            val.to_jsval(*cx, v.handle_mut());
+            val.to_jsval(*cx, &mut v.handle_mut());
         }
         self.reject(cx, v.handle(), can_gc);
     }
@@ -225,7 +225,7 @@ impl Promise {
         let cx = GlobalScope::get_cx();
         let _ac = enter_realm(self);
         rooted!(in(*cx) let mut v = UndefinedValue());
-        error.to_jsval(cx, &self.global(), v.handle_mut());
+        error.to_jsval(cx, &self.global(), &mut v.handle_mut());
         self.reject(cx, v.handle(), can_gc);
     }
 

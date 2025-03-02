@@ -88,9 +88,9 @@ impl XRInputSourcesChangeEvent {
         let _ac = enter_realm(global);
         let cx = GlobalScope::get_cx();
         rooted!(in(*cx) let mut frozen_val: JSVal);
-        to_frozen_array(added, cx, frozen_val.handle_mut());
+        to_frozen_array(added, cx, &mut frozen_val.handle_mut());
         changeevent.added.set(*frozen_val);
-        to_frozen_array(removed, cx, frozen_val.handle_mut());
+        to_frozen_array(removed, cx, &mut frozen_val.handle_mut());
         changeevent.removed.set(*frozen_val);
         changeevent
     }
@@ -124,12 +124,12 @@ impl XRInputSourcesChangeEventMethods<crate::DomTypeHolder> for XRInputSourcesCh
     }
 
     // https://immersive-web.github.io/webxr/#dom-xrinputsourceschangeevent-added
-    fn Added(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Added(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.added.get())
     }
 
     // https://immersive-web.github.io/webxr/#dom-xrinputsourceschangeevent-removed
-    fn Removed(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Removed(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.removed.get())
     }
 

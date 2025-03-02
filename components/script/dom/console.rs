@@ -12,7 +12,7 @@ use devtools_traits::{
 };
 use js::jsapi::{self, ESClass, PropertyDescriptor};
 use js::jsval::{Int32Value, UndefinedValue};
-use js::rust::wrappers::{
+use js::rust::jsapi_wrapped::{
     GetBuiltinClass, GetPropertyKeys, JS_GetOwnPropertyDescriptorById, JS_GetPropertyById,
     JS_IdToValue, JS_Stringify, JS_ValueToSource,
 };
@@ -195,14 +195,14 @@ fn stringify_handle_value(message: HandleValue) -> DOMString {
                     cx,
                     obj.handle(),
                     id.handle(),
-                    desc.handle_mut(),
+                    &mut desc.handle_mut(),
                     &mut is_none,
                 ) {
                     return DOMString::from("/* invalid */");
                 }
 
                 rooted!(in(cx) let mut property = UndefinedValue());
-                if !JS_GetPropertyById(cx, obj.handle(), id.handle(), property.handle_mut()) {
+                if !JS_GetPropertyById(cx, obj.handle(), id.handle(), &mut property.handle_mut()) {
                     return DOMString::from("/* invalid */");
                 }
 
@@ -223,7 +223,7 @@ fn stringify_handle_value(message: HandleValue) -> DOMString {
                     let key = if id.is_string() || id.is_symbol() || id.is_int() {
                         rooted!(in(cx) let mut key_value = UndefinedValue());
                         let raw_id: jsapi::HandleId = id.handle().into();
-                        if !JS_IdToValue(cx, *raw_id.ptr, key_value.handle_mut()) {
+                        if !JS_IdToValue(cx, *raw_id.ptr, &mut key_value.handle_mut()) {
                             return DOMString::from("/* invalid */");
                         }
                         handle_value_to_string(cx, key_value.handle())
@@ -310,7 +310,7 @@ fn maybe_stringify_dom_object(cx: JSContext, value: HandleValue) -> Option<DOMSt
     let stringify_result = unsafe {
         JS_Stringify(
             *cx,
-            value.handle_mut(),
+            &mut value.handle_mut(),
             HandleObject::null(),
             space.handle(),
             Some(stringified),

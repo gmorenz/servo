@@ -549,7 +549,7 @@ impl JsTimerTask {
                 // FIXME(cybai): Use base url properly by saving private reference for timers (#27260)
                 global.evaluate_js_on_global_with_result(
                     code_str,
-                    rval.handle_mut(),
+                    &mut rval.handle_mut(),
                     ScriptFetchOptions::default_classic_script(&global),
                     global.api_base_url(),
                     can_gc,
@@ -558,7 +558,7 @@ impl JsTimerTask {
             InternalTimerCallback::FunctionTimerCallback(ref function, ref arguments) => {
                 let arguments = self.collect_heap_args(arguments);
                 rooted!(in(*GlobalScope::get_cx()) let mut value: JSVal);
-                let _ = function.Call_(this, arguments, value.handle_mut(), Report);
+                let _ = function.Call_(this, arguments, &mut value.handle_mut(), Report);
             },
         };
         ScriptThread::set_user_interacting(was_user_interacting);

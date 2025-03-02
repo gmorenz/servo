@@ -50,7 +50,7 @@ pub(crate) fn load_script(head: &HTMLHeadElement) {
             global_scope.evaluate_script_on_global_with_result(
                 &script_text,
                 &file.to_string_lossy(),
-                rval.handle_mut(),
+                &mut rval.handle_mut(),
                 1,
                 ScriptFetchOptions::default_classic_script(global_scope),
                 global_scope.api_base_url(),

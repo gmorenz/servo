@@ -88,36 +88,36 @@ impl<D: DomTypes, T: DomObjectIteratorWrap<D> + JSTraceable + Iterable + DomGlob
         rooted!(in(*cx) let mut value = UndefinedValue());
         rooted!(in(*cx) let mut rval = ptr::null_mut::<JSObject>());
         let result = if index >= self.iterable.get_iterable_length() {
-            dict_return(cx, rval.handle_mut(), true, value.handle())
+            dict_return(cx, &mut rval.handle_mut(), true, value.handle())
         } else {
             match self.type_ {
                 IteratorType::Keys => {
                     unsafe {
                         self.iterable
                             .get_key_at_index(index)
-                            .to_jsval(*cx, value.handle_mut());
+                            .to_jsval(*cx, &mut value.handle_mut());
                     }
-                    dict_return(cx, rval.handle_mut(), false, value.handle())
+                    dict_return(cx, &mut rval.handle_mut(), false, value.handle())
                 },
                 IteratorType::Values => {
                     unsafe {
                         self.iterable
                             .get_value_at_index(index)
-                            .to_jsval(*cx, value.handle_mut());
+                            .to_jsval(*cx, &mut value.handle_mut());
                     }
-                    dict_return(cx, rval.handle_mut(), false, value.handle())
+                    dict_return(cx, &mut rval.handle_mut(), false, value.handle())
                 },
                 IteratorType::Entries => {
                     rooted!(in(*cx) let mut key = UndefinedValue());
                     unsafe {
                         self.iterable
                             .get_key_at_index(index)
-                            .to_jsval(*cx, key.handle_mut());
+                            .to_jsval(*cx, &mut key.handle_mut());
                         self.iterable
                             .get_value_at_index(index)
-                            .to_jsval(*cx, value.handle_mut());
+                            .to_jsval(*cx, &mut value.handle_mut());
                     }
-                    key_and_value_return(cx, rval.handle_mut(), key.handle(), value.handle())
+                    key_and_value_return(cx, &mut rval.handle_mut(), key.handle(), value.handle())
                 },
             }
         };
@@ -140,7 +140,7 @@ impl<D: DomTypes, T: DomObjectIteratorWrap<D> + JSTraceable + Iterable + DomGlob
 
 fn dict_return(
     cx: JSContext,
-    mut result: MutableHandleObject,
+    result: &mut MutableHandleObject,
     done: bool,
     value: HandleValue,
 ) -> Fallible<()> {
@@ -149,7 +149,7 @@ fn dict_return(
     dict.value.set(value.get());
     rooted!(in(*cx) let mut dict_value = UndefinedValue());
     unsafe {
-        dict.to_jsval(*cx, dict_value.handle_mut());
+        dict.to_jsval(*cx, &mut dict_value.handle_mut());
     }
     result.set(dict_value.to_object());
     Ok(())
@@ -157,7 +157,7 @@ fn dict_return(
 
 fn key_and_value_return(
     cx: JSContext,
-    mut result: MutableHandleObject,
+    result: &mut MutableHandleObject,
     key: HandleValue,
     value: HandleValue,
 ) -> Fallible<()> {
@@ -171,7 +171,7 @@ fn key_and_value_return(
     );
     rooted!(in(*cx) let mut dict_value = UndefinedValue());
     unsafe {
-        dict.to_jsval(*cx, dict_value.handle_mut());
+        dict.to_jsval(*cx, &mut dict_value.handle_mut());
     }
     result.set(dict_value.to_object());
     Ok(())

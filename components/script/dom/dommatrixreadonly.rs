@@ -785,7 +785,7 @@ impl DOMMatrixReadOnlyMethods<crate::DomTypeHolder> for DOMMatrixReadOnly {
             .map(|&x| x as f32)
             .collect();
         rooted!(in (*cx) let mut array = ptr::null_mut::<JSObject>());
-        create_buffer_source(cx, &vec, array.handle_mut(), can_gc)
+        create_buffer_source(cx, &vec, &mut array.handle_mut(), can_gc)
             .expect("Converting matrix to float32 array should never fail")
     }
 
@@ -795,7 +795,7 @@ impl DOMMatrixReadOnlyMethods<crate::DomTypeHolder> for DOMMatrixReadOnly {
         create_buffer_source(
             cx,
             &self.matrix.borrow().to_array(),
-            array.handle_mut(),
+            &mut array.handle_mut(),
             can_gc,
         )
         .expect("Converting matrix to float64 array should never fail")

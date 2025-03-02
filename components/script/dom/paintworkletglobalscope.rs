@@ -19,7 +19,7 @@ use js::jsapi::{
     JS_ClearPendingException, JS_IsExceptionPending, NewArrayObject, Value,
 };
 use js::jsval::{JSVal, ObjectValue, UndefinedValue};
-use js::rust::wrappers::{Call, Construct1};
+use js::rust::jsapi_wrapped::{Call, Construct1};
 use js::rust::{HandleValue, Runtime};
 use net_traits::image_cache::ImageCache;
 use pixels::PixelFormat;
@@ -281,7 +281,7 @@ impl PaintWorkletGlobalScope {
                 let args = HandleValueArray::empty();
                 rooted!(in(*cx) let mut result = null_mut::<JSObject>());
                 unsafe {
-                    Construct1(*cx, class_constructor.handle(), &args, result.handle_mut());
+                    Construct1(*cx, class_constructor.handle(), &args, &mut result.handle_mut());
                 }
                 paint_instance.set(ObjectValue(result.get()));
                 if unsafe { JS_IsExceptionPending(*cx) } {
@@ -340,7 +340,7 @@ impl PaintWorkletGlobalScope {
                 paint_instance.handle(),
                 paint_function.handle(),
                 &args,
-                result.handle_mut(),
+                &mut result.handle_mut(),
             );
         }
         let missing_image_urls = rendering_context.take_missing_image_urls();
@@ -548,7 +548,7 @@ impl PaintWorkletGlobalScopeMethods<crate::DomTypeHolder> for PaintWorkletGlobal
         // Steps 15-16
         rooted!(in(*cx) let mut prototype = UndefinedValue());
         unsafe {
-            get_property_jsval(*cx, paint_obj.handle(), "prototype", prototype.handle_mut())?;
+            get_property_jsval(*cx, paint_obj.handle(), "prototype", &mut prototype.handle_mut())?;
         }
         if !prototype.is_object() {
             return Err(Error::Type(String::from("Prototype is not an object.")));
@@ -562,7 +562,7 @@ impl PaintWorkletGlobalScopeMethods<crate::DomTypeHolder> for PaintWorkletGlobal
                 *cx,
                 prototype.handle(),
                 "paint",
-                paint_function.handle_mut(),
+                &mut paint_function.handle_mut(),
             )?;
         }
         if !paint_function.is_object() || unsafe { !IsCallable(paint_function.to_object()) } {

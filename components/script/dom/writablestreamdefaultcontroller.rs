@@ -164,7 +164,7 @@ impl Callback for WriteAlgorithmFulfillmentHandler {
         {
             rooted!(in(*cx) let mut rval = UndefinedValue());
             let mut queue = controller.queue.borrow_mut();
-            queue.dequeue_value(cx, Some(rval.handle_mut()), can_gc);
+            queue.dequeue_value(cx, Some(&mut rval.handle_mut()), can_gc);
         }
 
         let global = GlobalScope::from_safe_context(cx, realm);
@@ -371,7 +371,7 @@ impl WritableStreamDefaultController {
             start.Call_(
                 &this_object.handle(),
                 self,
-                result.handle_mut(),
+                &mut result.handle_mut(),
                 ExceptionHandling::Rethrow,
             )?;
             let is_promise = unsafe {
@@ -590,7 +590,7 @@ impl WritableStreamDefaultController {
             if queue.is_empty() {
                 return;
             }
-            queue.peek_queue_value(cx, value.handle_mut(), can_gc)
+            queue.peek_queue_value(cx, &mut value.handle_mut(), can_gc)
         };
 
         if is_closed {
@@ -699,7 +699,7 @@ impl WritableStreamDefaultController {
                 // Perform ! WritableStreamDefaultControllerErrorIfNeeded(controller, returnValue.[[Value]]).
                 // Create a rooted value for the error.
                 rooted!(in(*cx) let mut rooted_error = UndefinedValue());
-                error.to_jsval(cx, global, rooted_error.handle_mut());
+                error.to_jsval(cx, global, &mut rooted_error.handle_mut());
                 self.error_if_needed(cx, rooted_error.handle(), global, can_gc);
 
                 // Return 1.
@@ -731,7 +731,7 @@ impl WritableStreamDefaultController {
             // Perform ! WritableStreamDefaultControllerErrorIfNeeded(controller, enqueueResult.[[Value]]).
             // Create a rooted value for the error.
             rooted!(in(*cx) let mut rooted_error = UndefinedValue());
-            error.to_jsval(cx, global, rooted_error.handle_mut());
+            error.to_jsval(cx, global, &mut rooted_error.handle_mut());
             self.error_if_needed(cx, rooted_error.handle(), global, can_gc);
 
             // Return.

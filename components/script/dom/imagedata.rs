@@ -48,7 +48,7 @@ impl ImageData {
             if let Some(ref mut d) = data {
                 d.resize(len as usize, 0);
                 let data = CreateWith::Slice(&d[..]);
-                Uint8ClampedArray::create(*cx, data, js_object.handle_mut()).unwrap();
+                Uint8ClampedArray::create(*cx, data, &mut js_object.handle_mut()).unwrap();
                 Self::new_with_jsobject(global, None, width, Some(height), js_object.get(), can_gc)
             } else {
                 Self::new_without_jsobject(global, None, width, height, can_gc)

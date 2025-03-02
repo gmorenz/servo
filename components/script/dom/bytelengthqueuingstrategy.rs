@@ -108,7 +108,7 @@ pub(crate) unsafe fn byte_length_queuing_strategy_size(
         cx,
         object.handle(),
         "byteLength",
-        MutableHandleValue::from_raw(args.rval()),
+        &mut MutableHandleValue::from_raw(args.rval()),
     )
     .unwrap_or(false)
 }

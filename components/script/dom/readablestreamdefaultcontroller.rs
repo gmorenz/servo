@@ -10,7 +10,7 @@ use std::rc::Rc;
 use dom_struct::dom_struct;
 use js::jsapi::{Heap, JSObject};
 use js::jsval::{JSVal, UndefinedValue};
-use js::rust::wrappers::JS_GetPendingException;
+use js::rust::jsapi_wrapped::JS_GetPendingException;
 use js::rust::{HandleObject, HandleValue as SafeHandleValue, HandleValue, MutableHandleValue};
 use js::typedarray::Uint8;
 
@@ -148,11 +148,11 @@ impl EnqueuedValue {
     }
 
     #[allow(unsafe_code)]
-    fn to_jsval(&self, cx: SafeJSContext, rval: MutableHandleValue, can_gc: CanGc) {
+    fn to_jsval(&self, cx: SafeJSContext, rval: &mut MutableHandleValue, can_gc: CanGc) {
         match self {
             EnqueuedValue::Native(chunk) => {
                 rooted!(in(*cx) let mut array_buffer_ptr = ptr::null_mut::<JSObject>());
-                create_buffer_source::<Uint8>(cx, chunk, array_buffer_ptr.handle_mut(), can_gc)
+                create_buffer_source::<Uint8>(cx, chunk, &mut array_buffer_ptr.handle_mut(), can_gc)
                     .expect("failed to create buffer source for native chunk.");
                 unsafe { array_buffer_ptr.to_jsval(*cx, rval) };
             },
@@ -207,7 +207,7 @@ impl QueueWithSizes {
     pub(crate) fn dequeue_value(
         &mut self,
         cx: SafeJSContext,
-        rval: Option<MutableHandleValue>,
+        rval: Option<&mut MutableHandleValue>,
         can_gc: CanGc,
     ) {
         let Some(value) = self.queue.front() else {
@@ -254,7 +254,7 @@ impl QueueWithSizes {
     pub(crate) fn peek_queue_value(
         &self,
         cx: SafeJSContext,
-        rval: MutableHandleValue,
+        rval: &mut MutableHandleValue,
         can_gc: CanGc,
     ) -> bool {
         // Assert: container has [[queue]] and [[queueTotalSize]] internal slots.
@@ -455,7 +455,7 @@ impl ReadableStreamDefaultController {
     }
 
     /// <https://streams.spec.whatwg.org/#dequeue-value>
-    fn dequeue_value(&self, cx: SafeJSContext, rval: MutableHandleValue, can_gc: CanGc) {
+    fn dequeue_value(&self, cx: SafeJSContext, rval: &mut MutableHandleValue, can_gc: CanGc) {
         let mut queue = self.queue.borrow_mut();
         queue.dequeue_value(cx, Some(rval), can_gc);
     }
@@ -550,7 +550,7 @@ impl ReadableStreamDefaultController {
             // TODO: check if `self.global()` is the right globalscope.
             error
                 .clone()
-                .to_jsval(cx, &self.global(), rval.handle_mut());
+                .to_jsval(cx, &self.global(), &mut rval.handle_mut());
             let promise = Promise::new(&global, can_gc);
             promise.reject_native(&rval.handle(), can_gc);
             promise
@@ -587,7 +587,7 @@ impl ReadableStreamDefaultController {
             // TODO: check if `self.global()` is the right globalscope.
             error
                 .clone()
-                .to_jsval(cx, &self.global(), rval.handle_mut());
+                .to_jsval(cx, &self.global(), &mut rval.handle_mut());
             let promise = Promise::new(&global, can_gc);
             promise.reject_native(&rval.handle(), can_gc);
             promise
@@ -613,7 +613,7 @@ impl ReadableStreamDefaultController {
             let cx = GlobalScope::get_cx();
             rooted!(in(*cx) let mut rval = UndefinedValue());
             let result = RootedTraceableBox::new(Heap::default());
-            self.dequeue_value(cx, rval.handle_mut(), can_gc);
+            self.dequeue_value(cx, &mut rval.handle_mut(), can_gc);
             result.set(*rval);
 
             // If this.[[closeRequested]] is true and this.[[queue]] is empty
@@ -686,7 +686,7 @@ impl ReadableStreamDefaultController {
                     Err(error) => {
                         // If result is an abrupt completion,
                         rooted!(in(*cx) let mut rval = UndefinedValue());
-                        unsafe { assert!(JS_GetPendingException(*cx, rval.handle_mut())) };
+                        unsafe { assert!(JS_GetPendingException(*cx, &mut rval.handle_mut())) };
 
                         // Perform ! ReadableStreamDefaultControllerError(controller, result.[[Value]]).
                         self.error(rval.handle(), can_gc);
@@ -720,7 +720,7 @@ impl ReadableStreamDefaultController {
                     // Then, get a handle to the JS val for the exception,
                     // and use that to error the stream.
                     rooted!(in(*cx) let mut rval = UndefinedValue());
-                    unsafe { assert!(JS_GetPendingException(*cx, rval.handle_mut())) };
+                    unsafe { assert!(JS_GetPendingException(*cx, &mut rval.handle_mut())) };
 
                     // Perform ! ReadableStreamDefaultControllerError(controller, enqueueResult.[[Value]]).
                     self.error(rval.handle(), can_gc);
@@ -749,7 +749,7 @@ impl ReadableStreamDefaultController {
         if stream.is_locked() && stream.get_num_read_requests() > 0 {
             let cx = GlobalScope::get_cx();
             rooted!(in(*cx) let mut rval = UndefinedValue());
-            EnqueuedValue::Native(chunk.into_boxed_slice()).to_jsval(cx, rval.handle_mut(), can_gc);
+            EnqueuedValue::Native(chunk.into_boxed_slice()).to_jsval(cx, &mut rval.handle_mut(), can_gc);
             stream.fulfill_read_request(rval.handle(), false, can_gc);
         } else {
             let mut queue = self.queue.borrow_mut();

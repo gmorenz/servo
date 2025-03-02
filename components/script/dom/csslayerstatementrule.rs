@@ -69,7 +69,7 @@ impl SpecificCSSRule for CSSLayerStatementRule {
 
 impl CSSLayerStatementRuleMethods<crate::DomTypeHolder> for CSSLayerStatementRule {
     /// <https://drafts.csswg.org/css-cascade-5/#dom-csslayerstatementrule-namelist>
-    fn NameList(&self, cx: SafeJSContext, retval: MutableHandleValue) {
+    fn NameList(&self, cx: SafeJSContext, retval: &mut MutableHandleValue) {
         let names: Vec<DOMString> = self
             .layerstatementrule
             .names

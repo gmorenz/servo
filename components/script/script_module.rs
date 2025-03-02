@@ -28,7 +28,7 @@ use js::jsapi::{
 };
 use js::jsval::{JSVal, PrivateValue, UndefinedValue};
 use js::rust::jsapi_wrapped::JS_GetPendingException;
-use js::rust::wrappers::JS_SetPendingException;
+use js::rust::jsapi_wrapped::JS_SetPendingException;
 use js::rust::{
     transform_str_to_source_text, CompileOptionsWrapper, Handle, HandleObject as RustHandleObject,
     HandleValue, IntoHandle, MutableHandleObject as RustMutableHandleObject,
@@ -78,7 +78,7 @@ use crate::task::TaskBox;
 
 fn gen_type_error(global: &GlobalScope, string: String) -> RethrowError {
     rooted!(in(*GlobalScope::get_cx()) let mut thrown = UndefinedValue());
-    Error::Type(string).to_jsval(GlobalScope::get_cx(), global, thrown.handle_mut());
+    Error::Type(string).to_jsval(GlobalScope::get_cx(), global, &mut thrown.handle_mut());
 
     RethrowError(RootedTraceableBox::from_box(Heap::boxed(thrown.get())))
 }
@@ -461,7 +461,7 @@ impl ModuleTree {
         module_script_text: Rc<DOMString>,
         url: &ServoUrl,
         options: ScriptFetchOptions,
-        mut module_script: RustMutableHandleObject,
+        module_script: &mut RustMutableHandleObject,
         inline: bool,
         _can_gc: CanGc,
     ) -> Result<(), RethrowError> {
@@ -1234,7 +1234,7 @@ impl FetchResponseListener for ModuleContext {
                     resp_mod_script.text(),
                     &self.url,
                     self.options.clone(),
-                    compiled_module.handle_mut(),
+                    &mut compiled_module.handle_mut(),
                     false,
                     CanGc::note(),
                 );
@@ -1804,7 +1804,7 @@ pub(crate) fn fetch_inline_module_script(
         module_script_text,
         &url,
         options.clone(),
-        compiled_module.handle_mut(),
+        &mut compiled_module.handle_mut(),
         true,
         can_gc,
     );

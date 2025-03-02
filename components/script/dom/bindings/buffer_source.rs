@@ -20,7 +20,7 @@ use js::jsapi::{
     JS_GetArrayBufferViewBuffer, JS_GetArrayBufferViewByteLength, JS_IsArrayBufferViewObject,
     JS_IsTypedArrayObject,
 };
-use js::rust::wrappers::DetachArrayBuffer;
+use js::rust::jsapi_wrapped::DetachArrayBuffer;
 use js::rust::{CustomAutoRooterGuard, Handle, MutableHandleObject};
 #[cfg(feature = "webgpu")]
 use js::typedarray::{ArrayBuffer, HeapArrayBuffer};
@@ -66,7 +66,7 @@ where
         HeapTypedArrayInit::Info { len, cx } => {
             rooted!(in (*cx) let mut array = ptr::null_mut::<JSObject>());
             let typed_array_result =
-                create_buffer_source_with_length::<T>(cx, len as usize, array.handle_mut(), can_gc);
+                create_buffer_source_with_length::<T>(cx, len as usize, &mut array.handle_mut(), can_gc);
             if typed_array_result.is_err() {
                 return Err(());
             }
@@ -323,7 +323,7 @@ where
     ) -> Result<(), ()> {
         rooted!(in (*cx) let mut array = ptr::null_mut::<JSObject>());
         let _: TypedArray<T, *mut JSObject> =
-            create_buffer_source(cx, data, array.handle_mut(), can_gc)?;
+            create_buffer_source(cx, data, &mut array.handle_mut(), can_gc)?;
 
         match &self.buffer_source {
             BufferSource::ArrayBufferView(buffer) |
@@ -353,7 +353,7 @@ unsafe impl<T> crate::dom::bindings::trace::JSTraceable for HeapBufferSource<T> 
 pub(crate) fn create_buffer_source<T>(
     cx: JSContext,
     data: &[T::Element],
-    dest: MutableHandleObject,
+    dest: &mut MutableHandleObject,
     _can_gc: CanGc,
 ) -> Result<TypedArray<T, *mut JSObject>, ()>
 where
@@ -371,7 +371,7 @@ where
 fn create_buffer_source_with_length<T>(
     cx: JSContext,
     len: usize,
-    dest: MutableHandleObject,
+    dest: &mut MutableHandleObject,
     _can_gc: CanGc,
 ) -> Result<TypedArray<T, *mut JSObject>, ()>
 where

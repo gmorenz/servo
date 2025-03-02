@@ -57,7 +57,7 @@ impl GPUCompilationInfo {
 
 impl GPUCompilationInfoMethods<crate::DomTypeHolder> for GPUCompilationInfo {
     /// <https://gpuweb.github.io/gpuweb/#dom-gpucompilationinfo-messages>
-    fn Messages(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Messages(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         to_frozen_array(self.msg.as_slice(), cx, retval)
     }
 }

@@ -22,7 +22,7 @@ use js::jsapi::{
     TrueHandleValue, Value, JSFUN_CONSTRUCTOR, JSPROP_PERMANENT, JSPROP_READONLY, JSPROP_RESOLVING,
 };
 use js::jsval::{JSVal, NullValue, PrivateValue};
-use js::rust::wrappers::{
+use js::rust::jsapi_wrapped::{
     JS_DefineProperty, JS_DefineProperty3, JS_DefineProperty4, JS_DefineProperty5,
     JS_DefinePropertyById5, JS_FireOnNewGlobalObject, JS_LinkConstructorAndPrototype,
     JS_NewObjectWithGivenProto, RUST_SYMBOL_TO_JSID,
@@ -138,7 +138,7 @@ pub(crate) unsafe fn create_global_object(
     class: &'static JSClass,
     private: *const libc::c_void,
     trace: TraceHook,
-    mut rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
     origin: &MutableOrigin,
 ) {
     assert!(rval.is_null());
@@ -215,7 +215,7 @@ pub(crate) fn create_callback_interface_object(
     global: HandleObject,
     constants: &[Guard<&[ConstantSpec]>],
     name: &CStr,
-    mut rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     assert!(!constants.is_empty());
     unsafe {
@@ -238,7 +238,7 @@ pub(crate) fn create_interface_prototype_object(
     regular_properties: &[Guard<&'static [JSPropertySpec]>],
     constants: &[Guard<&[ConstantSpec]>],
     unscopable_names: &[&CStr],
-    rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     create_object(
         cx,
@@ -253,13 +253,13 @@ pub(crate) fn create_interface_prototype_object(
 
     if !unscopable_names.is_empty() {
         rooted!(in(*cx) let mut unscopable_obj = ptr::null_mut::<JSObject>());
-        create_unscopable_object(cx, unscopable_names, unscopable_obj.handle_mut());
+        create_unscopable_object(cx, unscopable_names, &mut unscopable_obj.handle_mut());
         unsafe {
             let unscopable_symbol = GetWellKnownSymbol(*cx, SymbolCode::unscopables);
             assert!(!unscopable_symbol.is_null());
 
             rooted!(in(*cx) let mut unscopable_id: jsid);
-            RUST_SYMBOL_TO_JSID(unscopable_symbol, unscopable_id.handle_mut());
+            RUST_SYMBOL_TO_JSID(unscopable_symbol, &mut unscopable_id.handle_mut());
 
             assert!(JS_DefinePropertyById5(
                 *cx,
@@ -286,7 +286,7 @@ pub(crate) fn create_noncallback_interface_object(
     name: &CStr,
     length: u32,
     legacy_window_alias_names: &[&CStr],
-    rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     create_object(
         cx,
@@ -355,7 +355,7 @@ pub(crate) fn create_object(
     methods: &[Guard<&'static [JSFunctionSpec]>],
     properties: &[Guard<&'static [JSPropertySpec]>],
     constants: &[Guard<&[ConstantSpec]>],
-    mut rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     unsafe {
         rval.set(JS_NewObjectWithGivenProto(*cx, class, proto));
@@ -467,7 +467,7 @@ unsafe extern "C" fn fun_to_string_hook(
     ret
 }
 
-fn create_unscopable_object(cx: SafeJSContext, names: &[&CStr], mut rval: MutableHandleObject) {
+fn create_unscopable_object(cx: SafeJSContext, names: &[&CStr], rval: &mut MutableHandleObject) {
     assert!(!names.is_empty());
     assert!(rval.is_null());
     unsafe {
@@ -548,7 +548,7 @@ pub(crate) fn get_per_interface_object_handle(
     global: HandleObject,
     id: ProtoOrIfaceIndex,
     creator: unsafe fn(SafeJSContext, HandleObject, *mut ProtoOrIfaceArray),
-    mut rval: MutableHandleObject,
+    rval: &mut MutableHandleObject,
 ) {
     unsafe {
         assert!(((*get_object_class(global.get())).flags & JSCLASS_DOM_GLOBAL) != 0);
@@ -581,7 +581,7 @@ pub(crate) fn define_dom_interface(
     }
 
     rooted!(in(*cx) let mut proto = ptr::null_mut::<JSObject>());
-    get_per_interface_object_handle(cx, global, id, creator, proto.handle_mut());
+    get_per_interface_object_handle(cx, global, id, creator, &mut proto.handle_mut());
     assert!(!proto.is_null());
 }
 
@@ -602,7 +602,7 @@ pub(crate) fn get_desired_proto(
     args: &CallArgs,
     proto_id: PrototypeList::ID,
     creator: unsafe fn(SafeJSContext, HandleObject, *mut ProtoOrIfaceArray),
-    mut desired_proto: MutableHandleObject,
+    desired_proto: &mut MutableHandleObject,
 ) -> Result<(), ()> {
     unsafe {
         // This basically implements

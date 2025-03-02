@@ -131,7 +131,7 @@ impl DefaultTeeReadRequest {
             rooted!(in(*cx) let mut clone_result = UndefinedValue());
             let data = structuredclone::write(cx, chunk2_value.handle(), None).unwrap();
             // If cloneResult is an abrupt completion,
-            if structuredclone::read(&self.stream.global(), data, clone_result.handle_mut())
+            if structuredclone::read(&self.stream.global(), data, &mut clone_result.handle_mut())
                 .is_err()
             {
                 // Perform ! ReadableStreamDefaultControllerError(branch_1.[[controller]], cloneResult.[[Value]]).

@@ -184,7 +184,7 @@ impl XRViewerPose {
         let cx = GlobalScope::get_cx();
         unsafe {
             rooted!(in(*cx) let mut jsval = UndefinedValue());
-            views.to_jsval(*cx, jsval.handle_mut());
+            views.to_jsval(*cx, &mut jsval.handle_mut());
             pose.views.set(jsval.get());
         }
 
@@ -194,7 +194,7 @@ impl XRViewerPose {
 
 impl XRViewerPoseMethods<crate::DomTypeHolder> for XRViewerPose {
     /// <https://immersive-web.github.io/webxr/#dom-xrviewerpose-views>
-    fn Views(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Views(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.views.get())
     }
 }

@@ -126,7 +126,7 @@ impl GamepadHapticActuator {
 
 impl GamepadHapticActuatorMethods<crate::DomTypeHolder> for GamepadHapticActuator {
     /// <https://www.w3.org/TR/gamepad/#dom-gamepadhapticactuator-effects>
-    fn Effects(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Effects(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         to_frozen_array(self.effects.as_slice(), cx, retval)
     }
 

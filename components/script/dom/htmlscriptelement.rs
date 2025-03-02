@@ -1059,7 +1059,7 @@ impl HTMLScriptElement {
             .evaluate_script_on_global_with_result(
                 &script.code,
                 script.url.as_str(),
-                rval.handle_mut(),
+                &mut rval.handle_mut(),
                 line_number,
                 script.fetch_options.clone(),
                 script.url.clone(),

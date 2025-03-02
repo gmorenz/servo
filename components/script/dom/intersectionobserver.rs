@@ -306,7 +306,7 @@ impl IntersectionObserverMethods<crate::DomTypeHolder> for IntersectionObserver 
     /// > constructor, or the sequence is empty, the value of this attribute will be `[0]`.
     ///
     /// <https://w3c.github.io/IntersectionObserver/#dom-intersectionobserver-thresholds>
-    fn Thresholds(&self, context: JSContext, retval: MutableHandleValue) {
+    fn Thresholds(&self, context: JSContext, retval: &mut MutableHandleValue) {
         to_frozen_array(&self.thresholds.borrow(), context, retval);
     }
 

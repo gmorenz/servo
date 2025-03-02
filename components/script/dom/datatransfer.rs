@@ -160,7 +160,7 @@ impl DataTransferMethods<crate::DomTypeHolder> for DataTransfer {
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-datatransfer-types>
-    fn Types(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Types(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         self.items.frozen_types(cx, retval);
     }
 

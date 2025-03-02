@@ -41,7 +41,7 @@ use js::error::throw_type_error;
 use js::glue::GetProxyReservedSlot;
 use js::jsapi::{Heap, IsWindowProxy, JSContext, JSObject, JS_IsExceptionPending};
 use js::jsval::UndefinedValue;
-use js::rust::wrappers::{IsArrayObject, JS_GetProperty, JS_HasProperty};
+use js::rust::jsapi_wrapped::{IsArrayObject, JS_GetProperty, JS_HasProperty};
 use js::rust::{HandleId, HandleObject, HandleValue, MutableHandleValue};
 use num_traits::Float;
 pub(crate) use script_bindings::conversions::*;
@@ -61,7 +61,7 @@ use crate::dom::nodelist::NodeList;
 
 impl<T: Float + ToJSValConvertible> ToJSValConvertible for Finite<T> {
     #[inline]
-    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         let value = **self;
         value.to_jsval(cx, rval);
     }
@@ -95,7 +95,7 @@ impl<T: Float + FromJSValConvertible<Config = ()>> FromJSValConvertible for Fini
 
 impl<T: ToJSValConvertible + JSTraceable> ToJSValConvertible for RootedTraceableBox<T> {
     #[inline]
-    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         let value = &**self;
         value.to_jsval(cx, rval);
     }
@@ -246,7 +246,7 @@ pub(crate) unsafe fn get_property_jsval(
     cx: *mut JSContext,
     object: HandleObject,
     name: &str,
-    mut rval: MutableHandleValue,
+    rval: &mut MutableHandleValue,
 ) -> Fallible<()> {
     rval.set(UndefinedValue());
     let cname = match ffi::CString::new(name) {
@@ -279,7 +279,7 @@ where
 {
     debug!("Getting property {}.", name);
     rooted!(in(cx) let mut result = UndefinedValue());
-    get_property_jsval(cx, object, name, result.handle_mut())?;
+    get_property_jsval(cx, object, name, &mut result.handle_mut())?;
     if result.is_undefined() {
         debug!("No property {}.", name);
         return Ok(None);

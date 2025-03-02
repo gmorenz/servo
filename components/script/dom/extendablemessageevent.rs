@@ -187,7 +187,7 @@ impl ExtendableMessageEventMethods<crate::DomTypeHolder> for ExtendableMessageEv
     }
 
     /// <https://w3c.github.io/ServiceWorker/#dom-extendablemessageevent-data>
-    fn Data(&self, _cx: JSContext, mut retval: MutableHandleValue) {
+    fn Data(&self, _cx: JSContext, retval: &mut MutableHandleValue) {
         retval.set(self.data.get())
     }
 
@@ -207,7 +207,7 @@ impl ExtendableMessageEventMethods<crate::DomTypeHolder> for ExtendableMessageEv
     }
 
     /// <https://w3c.github.io/ServiceWorker/#extendablemessage-event-ports>
-    fn Ports(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn Ports(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         self.frozen_ports.get_or_init(
             || {
                 self.ports

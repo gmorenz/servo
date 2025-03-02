@@ -999,14 +999,14 @@ impl XRSessionMethods<crate::DomTypeHolder> for XRSession {
             let framerates = session.supported_frame_rates();
             rooted!(in (*cx) let mut array = ptr::null_mut::<JSObject>());
             Some(
-                create_buffer_source(cx, framerates, array.handle_mut(), can_gc)
+                create_buffer_source(cx, framerates, &mut array.handle_mut(), can_gc)
                     .expect("Failed to construct supported frame rates array"),
             )
         }
     }
 
     /// <https://www.w3.org/TR/webxr/#dom-xrsession-enabledfeatures>
-    fn EnabledFeatures(&self, cx: JSContext, retval: MutableHandleValue) {
+    fn EnabledFeatures(&self, cx: JSContext, retval: &mut MutableHandleValue) {
         let session = self.session.borrow();
         let features = session.granted_features();
         to_frozen_array(features, cx, retval)

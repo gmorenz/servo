@@ -17,7 +17,7 @@ use js::jsapi::{
     JSITER_OWNONLY, JSITER_SYMBOLS, JSPROP_ENUMERATE,
 };
 use js::jsval::{ObjectValue, UndefinedValue};
-use js::rust::wrappers::{GetPropertyKeys, JS_DefineUCProperty2, JS_GetPropertyById, JS_IdToValue};
+use js::rust::jsapi_wrapped::{GetPropertyKeys, JS_DefineUCProperty2, JS_GetPropertyById, JS_IdToValue};
 use js::rust::{HandleId, HandleValue, IdVector, MutableHandleValue};
 
 use crate::dom::bindings::conversions::jsid_to_string;
@@ -49,7 +49,7 @@ impl RecordKey for USVString {
     unsafe fn from_id(cx: *mut JSContext, id: HandleId) -> Result<ConversionResult<Self>, ()> {
         rooted!(in(cx) let mut jsid_value = UndefinedValue());
         let raw_id: RawHandleId = id.into();
-        JS_IdToValue(cx, *raw_id.ptr, jsid_value.handle_mut());
+        JS_IdToValue(cx, *raw_id.ptr, &mut jsid_value.handle_mut());
 
         USVString::from_jsval(cx, jsid_value.handle(), ())
     }
@@ -63,7 +63,7 @@ impl RecordKey for ByteString {
     unsafe fn from_id(cx: *mut JSContext, id: HandleId) -> Result<ConversionResult<Self>, ()> {
         rooted!(in(cx) let mut jsid_value = UndefinedValue());
         let raw_id: RawHandleId = id.into();
-        JS_IdToValue(cx, *raw_id.ptr, jsid_value.handle_mut());
+        JS_IdToValue(cx, *raw_id.ptr, &mut jsid_value.handle_mut());
 
         ByteString::from_jsval(cx, jsid_value.handle(), ())
     }
@@ -150,7 +150,7 @@ where
             };
 
             rooted!(in(cx) let mut property = UndefinedValue());
-            if !JS_GetPropertyById(cx, object.handle(), id.handle(), property.handle_mut()) {
+            if !JS_GetPropertyById(cx, object.handle(), id.handle(), &mut property.handle_mut()) {
                 return Err(());
             }
 
@@ -173,14 +173,14 @@ where
     V: ToJSValConvertible,
 {
     #[inline]
-    unsafe fn to_jsval(&self, cx: *mut JSContext, mut rval: MutableHandleValue) {
+    unsafe fn to_jsval(&self, cx: *mut JSContext, rval: &mut MutableHandleValue) {
         rooted!(in(cx) let js_object = JS_NewPlainObject(cx));
         assert!(!js_object.handle().is_null());
 
         rooted!(in(cx) let mut js_value = UndefinedValue());
         for (key, value) in &self.map {
             let key = key.to_utf16_vec();
-            value.to_jsval(cx, js_value.handle_mut());
+            value.to_jsval(cx, &mut js_value.handle_mut());
 
             assert!(JS_DefineUCProperty2(
                 cx,
