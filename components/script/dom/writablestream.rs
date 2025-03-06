@@ -397,7 +397,7 @@ impl WritableStream {
         self.state.set(WritableStreamState::Erroring);
 
         // Set stream.[[storedError]] to reason.
-        self.stored_error.set(*error);
+        self.stored_error.set(error.get());
 
         // Let writer be stream.[[writer]].
         if let Some(writer) = self.writer.get() {

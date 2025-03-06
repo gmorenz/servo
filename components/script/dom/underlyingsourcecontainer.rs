@@ -98,7 +98,7 @@ impl UnderlyingSourceContainer {
     /// Setting the JS object after the heap has settled down.
     pub(crate) fn set_underlying_source_this_object(&self, object: HandleObject) {
         if let UnderlyingSourceType::Js(_source, this_obj) = &self.underlying_source_type {
-            this_obj.set(*object);
+            this_obj.set(object.get());
         }
     }
 

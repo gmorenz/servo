@@ -3107,8 +3107,8 @@ SetProxyReservedSlot(
             create = """
 rooted!(in(*cx) let mut proto = ptr::null_mut::<JSObject>());
 if let Some(given) = given_proto {
-    *proto = *given;
-    if get_context_realm(*cx) != get_object_realm(*given) {
+    *proto = given.get();
+    if get_context_realm(*cx) != get_object_realm(given.get()) {
         assert!(JS_WrapObject(*cx, &mut proto.handle_mut()));
     }
 } else {

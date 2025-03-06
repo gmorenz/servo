@@ -175,7 +175,7 @@ pub(crate) unsafe fn get_property_on_prototype(
 /// Get an array index from the given `jsid`. Returns `None` if the given
 /// `jsid` is not an integer.
 pub(crate) unsafe fn get_array_index_from_id(_cx: *mut JSContext, id: HandleId) -> Option<u32> {
-    let raw_id = *id;
+    let raw_id = id.get();
     if raw_id.is_int() {
         return Some(raw_id.to_int() as u32);
     }

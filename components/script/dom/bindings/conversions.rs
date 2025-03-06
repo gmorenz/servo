@@ -127,7 +127,7 @@ where
 ///
 /// Handling of invalid UTF-16 in strings depends on the relevant option.
 pub(crate) unsafe fn jsid_to_string(cx: *mut JSContext, id: HandleId) -> Option<DOMString> {
-    let id_raw = *id;
+    let id_raw = id.get();
     if id_raw.is_string() {
         let jsstr = std::ptr::NonNull::new(id_raw.to_string()).unwrap();
         return Some(jsstring_to_str(cx, jsstr));

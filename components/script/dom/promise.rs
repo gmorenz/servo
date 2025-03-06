@@ -61,7 +61,7 @@ impl PromiseHelper for Rc<Promise> {
     #[allow(unsafe_code)]
     fn initialize(&self, cx: SafeJSContext) {
         let obj = self.reflector().get_jsobject();
-        self.permanent_js_root.set(ObjectValue(*obj));
+        self.permanent_js_root.set(ObjectValue(obj.get()));
         unsafe {
             assert!(AddRawValueRoot(
                 *cx,
@@ -181,6 +181,17 @@ impl Promise {
             assert!(!p.handle().is_null());
             Promise::new_with_js_promise(p.handle(), cx)
         }
+    }
+
+    #[allow(unsafe_code)]
+    pub(crate) fn resolve_object(&self, val: HandleObject, can_gc: CanGc) {
+        let cx = GlobalScope::get_cx();
+        let _ac = enter_realm(self);
+        rooted!(in(*cx) let mut v = UndefinedValue());
+        unsafe {
+            val.to_jsval(*cx, &mut v.handle_mut());
+        }
+        self.resolve(cx, v.handle(), can_gc);
     }
 
     #[allow(unsafe_code)]
@@ -381,7 +392,7 @@ fn create_native_handler_function(
 
         rooted!(in(cx) let obj = JS_GetFunctionObject(func));
         assert!(!obj.is_null());
-        SetFunctionNativeReserved(obj.get(), SLOT_NATIVEHANDLER, &ObjectValue(*holder));
+        SetFunctionNativeReserved(obj.get(), SLOT_NATIVEHANDLER, &ObjectValue(holder.get()));
         SetFunctionNativeReserved(obj.get(), SLOT_NATIVEHANDLER_TASK, &Int32Value(task as i32));
         obj.get()
     }

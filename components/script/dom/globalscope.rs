@@ -2025,7 +2025,7 @@ impl GlobalScope {
         reflector: &T,
         _realm: &AlreadyInRealm,
     ) -> DomRoot<Self> {
-        unsafe { GlobalScope::from_object(*reflector.reflector().get_jsobject()) }
+        unsafe { GlobalScope::from_object(reflector.reflector().get_jsobject().get()) }
     }
 
     /// Returns the global scope of the realm that the given JS object was created in.

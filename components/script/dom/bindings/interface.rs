@@ -587,7 +587,7 @@ pub(crate) fn define_dom_interface(
 
 fn get_proto_id_for_new_target(new_target: HandleObject) -> Option<PrototypeList::ID> {
     unsafe {
-        let new_target_class = get_object_class(*new_target);
+        let new_target_class = get_object_class(new_target.get());
         if is_dom_class(&*new_target_class) {
             let domjsclass: *const DOMJSClass = new_target_class as *const DOMJSClass;
             let dom_class = &(*domjsclass).dom_class;

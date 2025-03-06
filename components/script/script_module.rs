@@ -466,7 +466,7 @@ impl ModuleTree {
         _can_gc: CanGc,
     ) -> Result<(), RethrowError> {
         let cx = GlobalScope::get_cx();
-        let _ac = JSAutoRealm::new(*cx, *global.reflector().get_jsobject());
+        let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
 
         let compile_options = unsafe { CompileOptionsWrapper::new(*cx, url.as_str(), 1) };
         let mut module_source = ModuleSource {
@@ -523,7 +523,7 @@ impl ModuleTree {
         module_record: HandleObject,
     ) -> Result<(), RethrowError> {
         let cx = GlobalScope::get_cx();
-        let _ac = JSAutoRealm::new(*cx, *global.reflector().get_jsobject());
+        let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
 
         unsafe {
             if !ModuleLink(*cx, module_record) {
@@ -556,7 +556,7 @@ impl ModuleTree {
         _can_gc: CanGc,
     ) -> Result<(), RethrowError> {
         let cx = GlobalScope::get_cx();
-        let _ac = JSAutoRealm::new(*cx, *global.reflector().get_jsobject());
+        let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
 
         unsafe {
             let ok = ModuleEvaluate(*cx, module_record, eval_result);
@@ -614,7 +614,7 @@ impl ModuleTree {
         base_url: &ServoUrl,
     ) -> Result<IndexSet<ServoUrl>, RethrowError> {
         let cx = GlobalScope::get_cx();
-        let _ac = JSAutoRealm::new(*cx, *global.reflector().get_jsobject());
+        let _ac = JSAutoRealm::new(*cx, global.reflector().get_jsobject().get());
 
         let mut specifier_urls = IndexSet::new();
 

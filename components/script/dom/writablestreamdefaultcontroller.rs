@@ -298,7 +298,7 @@ impl WritableStreamDefaultController {
 
     /// Setting the JS object after the heap has settled down.
     pub(crate) fn set_underlying_sink_this_object(&self, this_object: SafeHandleObject) {
-        self.underlying_sink_obj.set(*this_object);
+        self.underlying_sink_obj.set(this_object.get());
     }
 
     /// <https://streams.spec.whatwg.org/#writable-stream-default-controller-clear-algorithms>

@@ -628,7 +628,7 @@ impl ReadableStream {
                 } else {
                     // step 7 - Otherwise, perform readRequest’s chunk steps, given chunk.
                     let result = RootedTraceableBox::new(Heap::default());
-                    result.set(*chunk);
+                    result.set(chunk.get());
                     request.chunk_steps(result, can_gc);
                 }
             },

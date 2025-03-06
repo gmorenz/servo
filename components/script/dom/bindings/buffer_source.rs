@@ -171,7 +171,7 @@ where
                     rooted!(in (*cx) let view_buffer =
                             JS_GetArrayBufferViewBuffer(*cx, buffer.handle(), &mut is_shared));
                     debug_assert!(!is_shared);
-                    IsDetachedArrayBufferObject(*view_buffer.handle())
+                    IsDetachedArrayBufferObject(view_buffer.handle().get())
                 }
             },
             BufferSource::ArrayBuffer(buffer) => unsafe {
@@ -190,7 +190,7 @@ where
                     rooted!(in (*cx) let view_buffer =
                             JS_GetArrayBufferViewBuffer(*cx, buffer.handle(), &mut is_shared));
                     debug_assert!(!is_shared);
-                    GetArrayBufferByteLength(*view_buffer.handle())
+                    GetArrayBufferByteLength(view_buffer.handle().get())
                 }
             },
             BufferSource::ArrayBuffer(buffer) => unsafe {

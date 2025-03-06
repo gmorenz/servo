@@ -189,7 +189,8 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                     promise.reject_error(e, CanGc::note());
                     return;
                 }
-                promise.resolve_native(&*array_buffer_ptr.handle(), CanGc::note());
+
+                promise.resolve_object(array_buffer_ptr.handle(), CanGc::note());
             }));
         promise
     }
@@ -250,7 +251,7 @@ impl SubtleCryptoMethods<crate::DomTypeHolder> for SubtleCrypto {
                     return;
                 }
 
-                promise.resolve_native(&*array_buffer_ptr.handle(), CanGc::note());
+                promise.resolve_object(array_buffer_ptr.handle(), CanGc::note());
             }));
         promise
     }

@@ -102,7 +102,7 @@ impl DefaultTeeReadRequest {
     pub(crate) fn enqueue_chunk_steps(&self, chunk: RootedTraceableBox<Heap<JSVal>>) {
         // Queue a microtask to perform the following steps:
         let tee_read_request_chunk = DefaultTeeReadRequestMicrotask {
-            chunk: Heap::boxed(*chunk.handle()),
+            chunk: Heap::boxed(chunk.handle().get()),
             tee_read_request: Dom::from_ref(self),
         };
         let global = self.stream.global();

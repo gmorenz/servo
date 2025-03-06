@@ -248,7 +248,7 @@ fn stringify_handle_value(message: HandleValue) -> DOMString {
             if parents.len() >= MAX_LOG_DEPTH {
                 return DOMString::from("...");
             }
-            let value_bits = value.asBits_;
+            let value_bits = value.get().asBits_;
             if parents.contains(&value_bits) {
                 return DOMString::from("[circular]");
             }
