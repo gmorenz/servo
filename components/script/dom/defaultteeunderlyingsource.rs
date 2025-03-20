@@ -196,8 +196,8 @@ impl DefaultTeeUnderlyingSource {
         // Let compositeReason be ! CreateArrayFromList(« reason_1, reason_2 »).
         let cx = GlobalScope::get_cx();
         rooted_vec!(let mut reasons_values);
-        reasons_values.push(self.reason_1.get());
-        reasons_values.push(self.reason_2.get());
+        reasons_values.push_heap(self.reason_1.get());
+        reasons_values.push_heap(self.reason_2.get());
 
         let reasons_values_array = HandleValueArray::from(&reasons_values);
         rooted!(in(*cx) let reasons = unsafe { NewArrayObject(*cx, &reasons_values_array) });

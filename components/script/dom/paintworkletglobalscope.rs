@@ -318,18 +318,18 @@ impl PaintWorkletGlobalScope {
         rooted_vec!(let mut arguments_values);
         for argument in arguments {
             let style_value = CSSStyleValue::new(self.upcast(), argument.clone(), can_gc);
-            arguments_values.push(ObjectValue(style_value.reflector().get_jsobject().get()));
+            arguments_values.push_heap(ObjectValue(style_value.reflector().get_jsobject().get()));
         }
         let arguments_value_array = HandleValueArray::from(&arguments_values);
         rooted!(in(*cx) let argument_object = unsafe { NewArrayObject(*cx, &arguments_value_array) });
 
         rooted_vec!(let mut callback_args);
-        callback_args.push(ObjectValue(
+        callback_args.push_heap(ObjectValue(
             rendering_context.reflector().get_jsobject().get(),
         ));
-        callback_args.push(ObjectValue(paint_size.reflector().get_jsobject().get()));
-        callback_args.push(ObjectValue(properties.reflector().get_jsobject().get()));
-        callback_args.push(ObjectValue(argument_object.get()));
+        callback_args.push_heap(ObjectValue(paint_size.reflector().get_jsobject().get()));
+        callback_args.push_heap(ObjectValue(properties.reflector().get_jsobject().get()));
+        callback_args.push_heap(ObjectValue(argument_object.get()));
         let args = HandleValueArray::from(&callback_args);
 
         rooted!(in(*cx) let mut result = UndefinedValue());
