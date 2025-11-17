@@ -308,3 +308,4 @@ codegen-units = 1
 #
 # [patch."https://github.com/servo/rust-content-security-policy"]
 # content-security-policy = { path = "../rust-content-security-policy" }
+js = { git = "https://github.com/gmorenz/mozjs", rev = "6075d6943ed9714fcab162d12c6458ecba3d2183", package = "mozjs" }
